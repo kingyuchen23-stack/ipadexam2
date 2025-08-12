@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>选择产品</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #f5e8c7, #8b0000);
+            color: #ffffff;
+        }
+        h1 {
+            color: #ffffff;
+            font-size: 1.5em;
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .logo {
+            width: 200px;
+            margin-bottom: 20px;
+        }
+        select, button {
+            padding: 10px 15px;
+            margin: 8px;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            background-color: #f5e8c7;
+            color: #8b0000;
+            cursor: pointer;
+            width: 90%;
+            max-width: 300px;
+            box-sizing: border-box;
+        }
+        select:hover, button:hover {
+            background-color: #d9c2a5;
+        }
+        #result, #productResult {
+            margin-top: 15px;
+            font-size: 16px;
+            color: #ffffff;
+            background-color: rgba(139, 0, 0, 0.7);
+            padding: 12px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 300px;
+            text-align: center;
+        }
+        .container {
+            background-color: rgba(139, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 320px;
+            text-align: center;
+        }
+        .details {
+            display: none;
+            margin-top: 10px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #ffffff;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            background-color: rgba(245, 232, 199, 0.2);
+        }
+        th, td {
+            border: 1px solid #ffffff;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #8b0000;
+        }
+        .footer-info {
+            margin-top: 15px;
+            font-size: 12px;
+            color: #f5e8c7;
+            border-top: 1px solid #f5e8c7;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="https://www.lukfookeshop.com.cn/_nuxt/img/lfg-logo.60149f7.png" alt="Lukfook Logo" class="logo">
+        <h1>赋予管理层促成生意的额度</h1>
+        <select id="storeSelect">
+            <option value="">请选择店铺</option>
+            <option value="ZQ1">ZQ1</option>
+            <option value="ZQ8">ZQ8</option>
+            <option value="HT1">HT1</option>
+            <option value="ZQ6">ZQ6</option>
+            <option value="ZQB">ZQB</option>
+            <option value="ZQC">ZQC</option>
+            <option value="FH1">FH1</option>
+            <option value="FH2">FH2</option>
+            <option value="ZHC">ZHC</option>
+            <option value="HTG">HTG</option>
+            <option value="SNF">SNF</option>
+            <option value="HT9">HT9</option>
+            <option value="FS9">FS9</option>
+            <option value="SZK">SZK</option>
+            <option value="JTX">JTX</option>
+            <option value="SVG">SVG</option>
+            <option value="HTF">HTF</option>
+            <option value="WNN">WNN</option>
+            <option value="HT8">HT8</option>
+            <option value="HTH">HTH</option>
+        </select>
+        <button onclick="checkStore()">下一步</button>
+        <div id="result"></div>
+        <select id="productSelect" style="display: none;">
+            <option value="">请选择产品</option>
+            <option value="G1">G1</option>
+            <option value="G3">G3</option>
+            <option value="G4">G4</option>
+            <option value="G5">G5</option>
+            <option value="G6">G6</option>
+            <option value="G7">G7</option>
+            <option value="G8">G8</option>
+            <option value="G8摆件">G8 摆件</option>
+            <option value="P1">P1</option>
+            <option value="P2">P2</option>
+            <option value="P3">P3</option>
+            <option value="A1">A1</option>
+            <option value="T1">T1</option>
+            <option value="J1">J1</option>
+            <option value="J2">J2</option>
+            <option value="J3">J3</option>
+            <option value="J4">J4</option>
+            <option value="J5">J5</option>
+            <option value="J6">J6</option>
+            <option value="S1">S1</option>
+            <option value="E1">E1</option>
+            <option value="购金及换货">购金及换货</option>
+        </select>
+        <button id="confirmProduct" onclick="checkProduct()" style="display: none;">确认</button>
+        <div id="productResult"></div>
+        <div id="details" class="details"></div>
+        <button onclick="resetForm()" style="margin-top: 20px;">清空</button>
+    </div>
+
+    <script>
+        let selectedStore = '';
+
+        function checkStore() {
+            const store = document.getElementById('storeSelect').value;
+            const resultDiv = document.getElementById('result');
+            const productSelect = document.getElementById('productSelect');
+            const confirmProduct = document.getElementById('confirmProduct');
+            if (store === 'HTF' || store === 'ZHC') {
+                resultDiv.textContent = '您已选择 商场联营店铺，点击下一步选择产品';
+                selectedStore = store;
+                productSelect.style.display = 'block';
+                confirmProduct.style.display = 'block';
+            } else if (store) {
+                resultDiv.textContent = '您已选择 非商场扣点运作店铺，点击下一步选择产品';
+                selectedStore = store;
+                productSelect.style.display = 'block';
+                confirmProduct.style.display = 'block';
+            } else {
+                resultDiv.textContent = '请选择一个店铺';
+            }
+        }
+
+        function checkProduct() {
+            const product = document.getElementById('productSelect').value;
+            const productResultDiv = document.getElementById('productResult');
+            const detailsDiv = document.getElementById('details');
+            detailsDiv.style.display = 'none';
+
+            if (product) {
+                productResultDiv.textContent = `您选择的产品是 ${product}，正在查询折扣率...`;
+                let detailsContent = '';
+                if (selectedStore && (selectedStore === 'HTF' || selectedStore === 'ZHC')) {
+                    if (['G1', 'G3', 'G4', 'G5', 'G6', 'G7', 'G8', 'P1', 'P2', 'P3'].includes(product)) {
+                        detailsContent = `
+                            <table>
+                                <tr><th colspan="2">商场联营店铺折扣授权</th></tr>
+                                <tr><th>工费标价范围（元/克）</th><th>可减金额（元/克）</th></tr>
+                                <tr><td>30 - 50</td><td>55</td></tr>
+                                <tr><td>51 - 70</td><td>60</td></tr>
+                                <tr><td>71 - 90</td><td>65</td></tr>
+                                <tr><td>91 及以上</td><td>75</td></tr>
+                                <tr><td>其他情况</td><td>必须联系管理层并申请</td></tr>
+                            </table>
+                        `;
+                    } else if (product === 'G8摆件') {
+                        detailsContent = `
+                            <table>
+                                <tr><th colspan="2">G8 素金类摆件折扣政策</th></tr>
+                                <tr><td>无集团官方活动折扣</td><td>如顾客主动要求成交价超出相关会员折扣范围，可即时成交</td></tr>
+                                <tr><td>有集团官方活动折扣</td><td>如顾客主动要求成交价超出官方活动折扣范围，必须联系公司管理层并提交申请</td></tr>
+                            </table>
+                        `;
+                    } else if (product === '购金及换货') {
+                        detailsContent = `
+                            <table>
+                                <tr><th colspan="2">购金及换货政策</th></tr>
+                                <tr><td>黄金、铂金、K金及换货</td><td>若超出公司规定范围，必须联系公司管理层并申请批准</td></tr>
+                                <tr><td>铂金和K金换货</td><td>需特别通知并报备管理层</td></tr>
+                            </table>
+                        `;
+                    } else if (['J1', 'J2', 'J3', 'J4', 'J5', 'J6', 'A1', 'T1'].includes(product)) {
+                        detailsContent = `
+                            <table>
+                                <tr><th colspan="2">镶嵌类及定价类货品折扣授权</th></tr>
+                                <tr><th>情况</th><th>折扣范围</th></tr>
+                                <tr><td>所有价格</td><td>75 折及以上</td></tr>
+                            </table>
+                        `;
+                    } else if (['S1', 'E1'].includes(product)) {
+                        detailsContent = `
+                            <table>
+                                <tr><th colspan="2">S1 及 E1 折扣政策</th></tr>
+                                <tr><td>原则性规定</td><td>原则上不提供任何折扣</td></tr>
+                                <tr><td>例外情况</td><td>如需提供少量折扣，需由店面管理层联系公司领导进行审批</td></tr>
+                            </table>
+                        `;
+                    }
+                } else if (selectedStore) {
+                    if (['G1', 'G3', 'G4', 'G5', 'G6', 'G7', 'G8', 'P1', 'P2', 'P3'].includes(product)) {
+                        detailsContent = `
+                            <table>
+                                <tr><th colspan="2">非商场扣点运作店铺折扣授权</th></tr>
+                                <tr><th>工费标价范围（元/克）</th><th>可减金额（元/克）</th></tr>
+                                <tr><td>30 - 50</td><td>60</td></tr>
+                                <tr><td>51 - 70</td><td>65</td></tr>
+                                <tr><td>71 - 90</td><td>70</td></tr>
+                                <tr><td>91 及以上</td><td>80</td></tr>
+                                <tr><td>其他情况</td><td>必须联系管理层并申请</td></tr>
+                            </table>
+                        `;
+                    } else if (product === 'G8摆件') {
+                        detailsContent = `
+                            <table>
+                                <tr><th colspan="2">G8 素金类摆件折扣政策</th></tr>
+                                <tr><td>无集团官方活动折扣</td><td>如顾客主动要求成交价超出相关会员折扣范围，可即时成交</td></tr>
+                                <tr><td>有集团官方活动折扣</td><td>如顾客主动要求成交价超出官方活动折扣范围，必须联系公司管理层并提交申请</td></tr>
+                            </table>
+                        `;
+                    } else if (product === '购金及换货') {
+                        detailsContent = `
+                            <table>
+                                <tr><th colspan="2">购金及换货政策</th></tr>
+                                <tr><td>黄金、铂金、K金及换货</td><td>若超出公司规定范围，必须联系公司管理层并申请批准</td></tr>
+                                <tr><td>铂金和K金换货</td><td>需特别通知并报备管理层</td></tr>
+                            </table>
+                        `;
+                    } else if (['J1', 'J2', 'J3', 'J4', 'J5', 'J6', 'A1', 'T1'].includes(product)) {
+                        detailsContent = `
+                            <table>
+                                <tr><th colspan="2">镶嵌类及定价类货品折扣授权</th></tr>
+                                <tr><th>情况</th><th>折扣范围</th></tr>
+                                <tr><td>所有价格</td><td>75 折及以上</td></tr>
+                            </table>
+                        `;
+                    } else if (['S1', 'E1'].includes(product)) {
+                        detailsContent = `
+                            <table>
+                                <tr><th colspan="2">S1 及 E1 折扣政策</th></tr>
+                                <tr><td>原则性规定</td><td>原则上不提供任何折扣</td></tr>
+                                <tr><td>例外情况</td><td>如需提供少量折扣，需由店面管理层联系公司领导进行审批</td></tr>
+                            </table>
+                        `;
+                    }
+                }
+                detailsDiv.innerHTML = detailsContent + `
+                    <div class="footer-info">
+                        <strong>操作与政策指引</strong><br>
+                        1. <strong>即时成交操作要求</strong><br>
+                        在符合公司政策规定的情况下，员工可在未获得管理层授权前即时完成交易，但须通过企业微信按照行政部要求完成备案与审批流程。<br>
+                        2. <strong>公司目标与期望</strong><br>
+                        本公司旨在赋予员工更大操作灵活性，以捕捉每一次宝贵商机，携手团队共创辉煌并持续提升业绩表现。<br>
+                        3. <strong>销售折扣决策权归属</strong><br>
+                        销售折扣之最终决策权归行政部所有。如有任何疑问或建议，请随时联系：<br>
+                        &bull; 六福珠宝品牌店总经理：曾曙昕（电话：135 1035 1309）<br>
+                        &bull; 六福珠宝品牌店副总经理：陈敬裕（电话：158 1746 8347）
+                    </div>
+                `;
+                detailsDiv.style.display = 'block';
+            } else {
+                productResultDiv.textContent = '请选择一个产品';
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('storeSelect').value = '';
+            document.getElementById('productSelect').value = '';
+            document.getElementById('result').textContent = '';
+            document.getElementById('productResult').textContent = '';
+            document.getElementById('details').style.display = 'none';
+            document.getElementById('productSelect').style.display = 'none';
+            document.getElementById('confirmProduct').style.display = 'none';
+            selectedStore = '';
+        }
+    </script>
+</body>
+</html>
