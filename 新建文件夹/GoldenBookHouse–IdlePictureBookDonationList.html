@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>黄金书屋专项基金</title>
+  <style>
+    body {
+      background-color: #1E3A8A;
+      color: #FFFFFF;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 1.8em;
+      color: #FFD700;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+    }
+    h2 {
+      font-size: 1.2em;
+      color: #FFD700;
+      margin-top: 20px;
+    }
+    p, ul {
+      font-size: 0.95em;
+    }
+    a {
+      color: #FFD700;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .step1, .step2 {
+      display: none;
+    }
+    .step1.active, .step2.active {
+      display: block;
+    }
+    .highlight {
+      color: #FFD700;
+      font-weight: bold;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .grid label {
+      font-weight: bold;
+      font-size: 1em;
+      color: #FFFFFF;
+    }
+    .grid input[type="text"], .grid select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      font-size: 1em;
+      border: 2px solid #FFD700;
+      border-radius: 5px;
+      background-color: #2A5298;
+      color: #FFFFFF;
+      box-sizing: border-box;
+    }
+    .book-inputs {
+      grid-column: 1 / -1;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 15px;
+      background-color: #FFD700;
+      border: none;
+      border-radius: 5px;
+      font-size: 1.1em;
+      color: #1E3A8A;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #FFC107;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    li {
+      margin-bottom: 10px;
+    }
+    .alert {
+      background-color: #FF4444;
+      color: #FFFFFF;
+      padding: 15px;
+      text-align: center;
+      font-size: 1.2em;
+      font-weight: bold;
+      border-radius: 5px;
+      margin-top: 20px;
+    }
+    @media (min-width: 600px) {
+      .container {
+        max-width: 600px;
+      }
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .book-inputs {
+        grid-column: 1 / -1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>黄金书屋专项基金</h1>
+    <p>邀您与乡村孩子分享最爱的图书 - <span class="highlight">SHARE BOOKS, SHARE LOVE</span></p>
+    <div class="step1 active">
+      <h2>适合捐赠的图书信息</h2>
+      <p>适合5-12岁儿童阅读的课外图书类型包括：</p>
+      <ul>
+        <li>📚 图画绘本</li>
+        <li>📖 童话寓言</li>
+        <li>💡 益智读物</li>
+        <li>🌟 儿童文学经典名著</li>
+        <li>👤 名人传记</li>
+        <li>🔬 科普百科</li>
+        <li>🛠️ 工具书</li>
+      </ul>
+      <p>推荐捐赠新书或八成新以上的图书。如捐赠旧书，则需满足以下条件：</p>
+      <ul>
+        <li>⏰ 最新印刷时间不超过10年</li>
+        <li>⭐ 八成新以上</li>
+        <li>✍️ 大涂鸦处不超过5处，小涂鸦处不超过10处</li>
+        <li>✅ 装帧良好，不脱页、不松散、封面封底完好</li>
+      </ul>
+      <p>不适宜捐赠的图书种类：</p>
+      <ul>
+        <li>🚫 教材、教辅、报刊、婴幼儿图书</li>
+        <li>❌ 有破损污渍</li>
+        <li>👎 其他不适合青少年儿童阅读的书籍</li>
+      </ul>
+      <p>不接受捐赠的图书种类：</p>
+      <p>违规使用“<a href="http://www.moe.gov.cn/srcsite/A26/moe_714/202104/t20210401_523904.html" target="_blank">教育部印发《中小学生课外读物进校园管理办法》</a>”等字样的出版物（依据：教育部相关文件规定）。</p>
+      <button onclick="showStep2()">下一步</button>
+    </div>
+
+    <div class="step2">
+      <h2>黄金书屋——闲置绘本捐赠清单</h2>
+      <div class="grid">
+        <div>
+          <label>捐赠人：</label>
+          <input type="text" id="donorName" placeholder="请输入您的姓名">
+        </div>
+        <div>
+          <label>捐赠数量：</label>
+          <select id="quantity" onchange="updateBookInputs()">
+            <option value="0">0</option>
+            <script>
+              for (let i = 1; i <= 200; i++) {
+                document.write(`<option value="${i}">${i}</option>`);
+              }
+            </script>
+          </select>
+        </div>
+        <div class="book-inputs" id="bookInputs"></div>
+      </div>
+      <button onclick="clearForm()">清空</button>
+      <button onclick="copyToClipboard()">复制</button>
+      <div class="alert">!!! 重要提醒 !!! 复制完成后，请立即将消息发送给青宝会秘书 崔敏仪女士 !!!</div>
+    </div>
+  </div>
+
+  <script>
+    function showStep2() {
+      document.querySelector('.step1').classList.remove('active');
+      document.querySelector('.step2').classList.add('active');
+    }
+
+    function updateBookInputs() {
+      const quantity = document.getElementById('quantity').value;
+      const bookInputs = document.getElementById('bookInputs');
+      bookInputs.innerHTML = '';
+      for (let i = 0; i < quantity; i++) {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = `书籍名称 ${i + 1}`;
+        bookInputs.appendChild(input);
+        bookInputs.appendChild(document.createElement('br'));
+      }
+    }
+
+    function clearForm() {
+      document.getElementById('donorName').value = '';
+      document.getElementById('quantity').value = '0';
+      document.getElementById('bookInputs').innerHTML = '';
+    }
+
+    function copyToClipboard() {
+      const donorName = document.getElementById('donorName').value;
+      const quantity = document.getElementById('quantity').value;
+      const bookInputs = document.getElementById('bookInputs').getElementsByTagName('input');
+      let text = `捐赠人：${donorName}\n捐赠数量：${quantity}\n书籍名称：`;
+      for (let i = 0; i < bookInputs.length; i++) {
+        text += `\n  - ${bookInputs[i].value || '未填写'}`;
+      }
+      navigator.clipboard.writeText(text).then(() => {
+        alert('内容已复制到剪贴板！');
+      });
+    }
+  </script>
+</body>
+</html>
