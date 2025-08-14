@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+<title>选择产品</title>
+<style>
+  :root{
+    --bg1:#f5e8c7;
+    --bg2:#8b0000;
+    --card: rgba(139,0,0,.92);
+    --muted: rgba(245,232,199,.2);
+    --text:#fff;
+    --brand:#f5e8c7;
+    --brand-2:#d9c2a5;
+    --border:#ffffff;
+    --shadow:0 6px 12px rgba(0,0,0,.12);
+    --danger:#ffeb3b;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, "PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    color:var(--text);
+    background: linear-gradient(135deg, var(--bg1), var(--bg2));
+    min-height:100dvh;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .container{
+    width:min(92vw, 420px);
+    background:var(--card);
+    border-radius:14px;
+    padding:18px 16px 20px;
+    box-shadow:var(--shadow);
+  }
+  @supports(padding: max(0px)){
+    .container{ padding-bottom:max(20px, env(safe-area-inset-bottom)); }
+  }
+  .logo{width:180px;display:block;margin:0 auto 10px auto}
+  h1{
+    margin:8px 0 14px;
+    font-size:18px;line-height:1.3;text-align:center;font-weight:700;
+  }
+  .form-row{margin:10px 0 8px}
+  label{display:block;margin:0 0 6px 2px;font-size:13px;opacity:.95}
+  select,button,input{
+    width:100%;
+    padding:12px 14px;
+    border:none;border-radius:8px;
+    background:var(--brand);
+    color:#8b0000;
+    font-size:15px;font-weight:600;
+  }
+  input{background:#fff;color:#222;border:1px solid #0002}
+  select:focus,button:focus,input:focus{outline:2px solid #fff2;border-radius:9px}
+  button.primary{margin-top:10px}
+  button[disabled]{opacity:.5;cursor:not-allowed}
+  #result,#productResult{
+    margin-top:12px;
+    background: rgba(139,0,0,.72);
+    padding:12px;border-radius:8px;
+    font-size:14px;
+  }
+  .details{
+    overflow:hidden;
+    max-height:0;
+    opacity:0;
+    transition:max-height .4s ease, opacity .35s ease;
+    will-change:max-height,opacity;
+    margin-top:6px;
+  }
+  .details.show{
+    opacity:1;
+    max-height:2000px;
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    margin:10px 0;
+    background:var(--muted);
+  }
+  th,td{border:1px solid var(--border);padding:8px 7px;text-align:left}
+  th{background:#8b0000}
+  .grid{display:grid;grid-template-columns:1fr;gap:10px;margin:10px 0}
+  .grid-two-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .grid-item{background:var(--muted);padding:8px;border:1px solid var(--border);border-radius:8px}
+  .grid-item img{width:100%;height:auto;border-radius:6px;display:block}
+  .alert-text{background:yellow;color:red;font-size:16px;font-weight:700;padding:2px 6px;border-radius:4px}
+  .footer-info{margin-top:12px;font-size:12px;color:#f5e8c7;border-top:1px solid #f5e8c7;padding-top:10px}
+  .actions{
+    display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px
+  }
+  .ghost{
+    background:transparent;color:#fff;border:1px solid #fff7
+  }
+  .danger-note{
+    background: var(--danger); color:#b00000; border-radius:6px; padding:6px 8px; margin-top:8px; font-weight:700;
+  }
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  /* 计算器抽屉 */
+  #calcSheet{display:none;background:#0008;position:fixed;inset:0;z-index:50;align-items:flex-end}
+  #calcPanel{background:#fff;color:#222;width:100%;border-radius:14px 14px 0 0;padding:14px 12px;max-height:72vh;overflow:auto}
+  #calcPanel h3{margin:4px 0 10px;font-size:16px;color:#8b0000}
+  .subtle{font-size:12px;color:#666;margin:4px 0 10px}
+  #calcGold,#calcSet{display:none}
+  #calcOut{margin-top:10px;font-size:14px}
+  #priceLinkContainer{margin-top:10px;border-top:1px solid #ccc;padding-top:10px;text-align:center}
+  #priceLink{font-size:14px;color:#007bff;text-decoration:underline;cursor:pointer}
+</style>
+</head>
+<body>
+  <main class="container" role="main">
+    <img src="https://www.lukfookeshop.com.cn/_nuxt/img/lfg-logo.60149f7.png" alt="Lukfook Logo" class="logo" />
+    <h1>赋予管理层促成生意的额度</h1>
+    <div class="form-row">
+      <label for="storeSelect">店铺类型</label>
+      <select id="storeSelect" aria-describedby="storeHelp">
+        <option value="">请选择店铺类型</option>
+        <option value="nonMall">非商场扣点运作店铺（不扣点）</option>
+        <option value="mall">商场联营店铺（扣点）：HTF、ZHC</option>
+      </select>
+      <div id="storeHelp" class="sr-only">先选择店铺类型，再进行下一步</div>
+    </div>
+    <button id="nextBtn" class="primary" disabled>下一步</button>
+    <div id="result" aria-live="polite"></div>
+    <div id="productBlock" style="display:none">
+      <div class="form-row">
+        <label for="productSelect">产品类别</label>
+        <select id="productSelect" aria-describedby="productHelp">
+          <option value="">请选择产品</option>
+          <option value="G1">G1</option>
+          <option value="G3">G3</option>
+          <option value="G4">G4</option>
+          <option value="G5">G5</option>
+          <option value="G6">G6</option>
+          <option value="G7">G7</option>
+          <option value="G8">G8</option>
+          <option value="G8摆件">G8 摆件</option>
+          <option value="P1">P1</option>
+          <option value="P2">P2</option>
+          <option value="P3">P3</option>
+          <option value="A1">A1</option>
+          <option value="T1">T1</option>
+          <option value="J1">J1</option>
+          <option value="J2">J2</option>
+          <option value="J3">J3</option>
+          <option value="J4">J4</option>
+          <option value="J5">J5</option>
+          <option value="J6">J6</option>
+          <option value="S1">S1</option>
+          <option value="E1">E1</option>
+          <option value="购金及换货">购金及换货</option>
+        </select>
+        <div id="productHelp" class="sr-only">选择产品后点击确认查看折扣与政策</div>
+      </div>
+      <div class="form-row" id="platinumTypeBlock" style="display:none">
+        <label for="platinumType">铂金类型</label>
+        <select id="platinumType">
+          <option value="">请选择铂金类型</option>
+          <option value="足铂999">足铂999/足铂</option>
+          <option value="Pt950">Pt 950</option>
+        </select>
+      </div>
+      <div class="actions">
+        <button id="confirmProduct" class="primary" disabled>确认</button>
+        <button id="resetBtn" class="ghost">清空</button>
+      </div>
+      <button id="copyPolicy" class="ghost" style="margin-top:8px">复制当前政策到剪贴板</button>
+      <button id="calcBtn" class="primary" style="margin-top:6px">快速计算成交价</button>
+    </div>
+    <div id="productResult" aria-live="polite"></div>
+    <section id="details" class="details" aria-label="折扣与政策详情"></section>
+  </main>
+  <div id="calcSheet">
+    <div id="calcPanel">
+      <h3>成交小计算器</h3>
+      <div class="subtle">根据当前选择的“店铺类型 & 产品类别”自动切换计算方式。</div>
+      <div id="calcGold">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <input id="goldPrice" type="number" inputmode="decimal" placeholder="金价/克" />
+          <input id="laborPerGram" type="number" inputmode="decimal" placeholder="工费/克" />
+          <input id="goldWeight" type="number" inputmode="decimal" placeholder="克重(g)" />
+          <input id="goldFinal" type="number" inputmode="decimal" placeholder="客户预期成交价(¥,可选)" />
+        </div>
+      </div>
+      <div id="calcSet">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <input id="setTag" type="number" inputmode="decimal" placeholder="标价总额(¥)" />
+          <input id="setDeal" type="number" inputmode="decimal" placeholder="预计成交价(¥)" />
+        </div>
+      </div>
+      <div id="calcOut"></div>
+      <div id="priceLinkContainer">
+        <span id="priceLink">查看当日金价 - 自动显示当日日期</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:10px">
+        <button id="calcDo" class="primary" style="flex:1">计算</button>
+        <button id="calcClose" class="ghost" style="flex:1">关闭</button>
+      </div>
+    </div>
+  </div>
+<script>
+/** ----------------------
+ * 基础配置
+ * ---------------------- */
+const VERSION_TEXT = '规则版本：2025-08-15 生效';
+const RULES = {
+  nonMall: {
+    label: '非商场扣点运作店铺（不扣点）',
+    goldReduceTable: [
+      ['30 - 50', '60'],
+      ['51 - 70', '65'],
+      ['71 - 90', '70'],
+      ['91 及以上', '80'],
+      ['其他情况', '必须联系管理层并申请']
+    ]
+  },
+  mall: {
+    label: '商场联营店铺（扣点）：HTF、ZHC',
+    goldReduceTable: [
+      ['30 - 50', '55'],
+      ['51 - 70', '60'],
+      ['71 - 90', '65'],
+      ['91 及以上', '75'],
+      ['其他情况', '必须联系管理层并申请']
+    ]
+  },
+  common: {
+    tableHead(label){
+      return `
+        <table>
+          <tr><th colspan="2">${label}</th></tr>
+          <tr><th>工费标价范围（元/克）</th><th>可减金额（元/克）</th></tr>
+      `;
+    },
+    setInlayTable(){
+      return `
+        <table>
+          <tr><th colspan="2">镶嵌类及定价类货品折扣授权</th></tr>
+          <tr><th>情况</th><th>折扣范围</th></tr>
+          <tr><td>所有价格</td><td>75 折及以上</td></tr>
+        </table>
+      `;
+    },
+    g8Decoration(){
+      return `
+        <table>
+          <tr><th colspan="2">G8 素金类摆件折扣政策</th></tr>
+          <tr><td>无集团官方活动折扣</td><td>如顾客主动要求成交价超出相关会员折扣范围，可即时成交</td></tr>
+          <tr><td>有集团官方活动折扣</td><td>如顾客主动要求成交价超出官方活动折扣范围，必须联系公司管理层并提交申请</td></tr>
+        </table>
+      `;
+    },
+    buyExchange(){
+      return `
+        <table>
+          <tr><th colspan="2">购金及换货政策</th></tr>
+          <tr><td>黄金、铂金、K金及换货</td><td>若超出公司规定范围，必须联系公司管理层并申请批准</td></tr>
+          <tr><td>铂金和K金换货</td><td>需特别通知并报备管理层</td></tr>
+        </table>
+      `;
+    },
+    s1e1(){
+      return `
+        <table>
+          <tr><th colspan="2">S1 及 E1 折扣政策</th></tr>
+          <tr><td>原则性规定</td><td>原则上不提供任何折扣</td></tr>
+          <tr><td>例外情况</td><td>如需提供少量折扣，需由店面管理层联系公司领导进行审批</td></tr>
+        </table>
+      `;
+    },
+    iceDiamondBlock(){
+      return `
+        <div class="grid">
+          <div class="grid-item">
+            ${RULES.common.setInlayTable()}
+          </div>
+          <div class="grid-item">
+            <strong>冰·钻光影金系列优惠政策</strong><br>
+            1. 单笔交易标价总额≥10,000元，可享 7.5 折。<br>
+            2. 冰·钻玫瑰指定款式：<br>
+               &bull; 模号：029591PB - 吊坠，金重约 3.01 克<br>
+               &bull; 模号：029591BC - 手链，金重约 2.29 克<br>
+               &bull; 购买上述指定款式，新购可享 75 折；单独购买适用现行标价（无需满 10,000 元），优惠仅限新购。<br>
+            3. 折扣审批：需经 Kenny / 曾生批准，采用 <span class="alert-text">飞尾</span> 方式出单，电脑单最低折扣为 8 折。
+          </div>
+          <div class="grid-two-cols">
+            <div class="grid-item">
+              <img src="https://www.lukfook.com/content/uploads/2025/04/67f5f318c16d1.jpg" alt="冰·钻玫瑰 029591PB">
+            </div>
+            <div class="grid-item">
+              <img src="https://www.lukfook.com/content/uploads/2025/04/67f5f31a042e1.jpg" alt="冰·钻玫瑰 029591BC">
+            </div>
+          </div>
+        </div>
+      `;
+    },
+    footer(){
+      return `
+        <div class="footer-info">
+          <strong>操作与政策指引</strong><br>
+          1. <strong>即时成交操作要求</strong>：在符合公司政策的前提下，可先行即时成交，但必须按行政部要求通过企业微信完成备案与审批。<br>
+          2. <strong>公司目标与期望</strong>：赋能一线，提高灵活度，把握每次商机，持续提升业绩表现。<br>
+          3. <strong>销售折扣决策权</strong>：最终解释与决策权归行政部。疑问请联系：<br>
+          &bull; 六福珠宝品牌店总经理：曾曙昕（<a href="tel:13510351309" style="color:#fff">135 1035 1309</a>）<br>
+          &bull; 六福珠宝品牌店副总经理：陈敬裕（<a href="tel:15817468347" style="color:#fff">158 1746 8347</a>）<br>
+          <span style="opacity:.9">${VERSION_TEXT}</span>
+        </div>
+      `;
+    }
+  }
+};
+/** ----------------------
+ * 状态与元素
+ * ---------------------- */
+let selectedStore = '';
+const el = (id)=>document.getElementById(id);
+const storeSelect = el('storeSelect');
+const nextBtn = el('nextBtn');
+const resultDiv = el('result');
+const productBlock = el('productBlock');
+const productSelect = el('productSelect');
+const platinumTypeBlock = el('platinumTypeBlock');
+const platinumType = el('platinumType');
+const confirmProduct = el('confirmProduct');
+const resetBtn = el('resetBtn');
+const productResult = el('productResult');
+const detailsDiv = el('details');
+const copyPolicyBtn = el('copyPolicy');
+const priceLink = el('priceLink');
+/** ----------------------
+ * 小工具函数
+ * ---------------------- */
+function scrollIntoViewSmooth(target){
+  requestAnimationFrame(()=> target.scrollIntoView({behavior:'smooth', block:'start'}));
+}
+function setDetails(html){
+  detailsDiv.innerHTML = html;
+  detailsDiv.classList.add('show');
+  scrollIntoViewSmooth(detailsDiv);
+}
+function clearDetails(){
+  detailsDiv.innerHTML = '';
+  detailsDiv.classList.remove('show');
+}
+function toInt(n){ return Math.trunc(Number(n)||0); } // 不保留小数，且不进位（正数等同于向下取整）
+/** ----------------------
+ * 事件绑定
+ * ---------------------- */
+storeSelect.addEventListener('change', () => {
+  selectedStore = storeSelect.value;
+  nextBtn.disabled = !selectedStore;
+  resultDiv.textContent = '';
+  productResult.textContent = '';
+  clearDetails();
+});
+nextBtn.addEventListener('click', () => {
+  if(!selectedStore){
+    resultDiv.textContent = '请选择店铺类型';
+    return;
+  }
+  const label = RULES[selectedStore]?.label || '';
+  resultDiv.textContent = `您已选择：${label}。请继续选择产品类别。`;
+  productBlock.style.display = 'block';
+  confirmProduct.disabled = !productSelect.value;
+  scrollIntoViewSmooth(productBlock);
+});
+productSelect.addEventListener('change', () => {
+  const product = productSelect.value;
+  if (product.startsWith('P')) {
+    platinumTypeBlock.style.display = 'block';
+  } else {
+    platinumTypeBlock.style.display = 'none';
+    platinumType.value = '';
+  }
+  confirmProduct.disabled = !product || (product.startsWith('P') && !platinumType.value);
+  productResult.textContent = '';
+  clearDetails();
+});
+platinumType.addEventListener('change', () => {
+  const product = productSelect.value;
+  if (product.startsWith('P')) {
+    confirmProduct.disabled = !platinumType.value;
+  }
+});
+confirmProduct.addEventListener('click', () => {
+  const product = productSelect.value;
+  if(!product){ productResult.textContent = '请选择一个产品'; return; }
+  if (product.startsWith('P') && !platinumType.value) {
+    productResult.textContent = '请选择铂金类型';
+    return;
+  }
+  let displayProduct = product;
+  if (product.startsWith('P')) {
+    displayProduct += ` - ${platinumType.options[platinumType.selectedIndex].text}`;
+  }
+  productResult.textContent = `您选择的产品是：${displayProduct}，折扣与政策如下：`;
+  let html = '';
+  const storeCfg = RULES[selectedStore];
+  const goldCats = ['G1','G3','G4','G5','G6','G7','G8','P1','P2','P3'];
+  if (goldCats.includes(product)) {
+    html += RULES.common.tableHead(selectedStore==='nonMall'?'非商场扣点运作店铺折扣授权':'商场联营店铺折扣授权');
+    for(const row of storeCfg.goldReduceTable){
+      html += `<tr><td>${row[0]}</td><td>${row[1]}</td></tr>`;
+    }
+    html += '</table>';
+  }
+  else if (product === 'G8摆件'){
+    html += RULES.common.g8Decoration();
+  }
+  else if (product === '购金及换货'){
+    html += RULES.common.buyExchange();
+  }
+  else if (product === 'A1'){
+    html += RULES.common.iceDiamondBlock();
+  }
+  else if (['T1','J1','J2','J3','J4','J5','J6'].includes(product)){
+    html += RULES.common.setInlayTable();
+  }
+  else if (['S1','E1'].includes(product)){
+    html += RULES.common.s1e1();
+  }
+  html += RULES.common.footer();
+  setDetails(html);
+});
+resetBtn.addEventListener('click', resetForm);
+function resetForm(){
+  storeSelect.value = '';
+  productSelect.value = '';
+  platinumType.value = '';
+  platinumTypeBlock.style.display = 'none';
+  selectedStore = '';
+  nextBtn.disabled = true;
+  confirmProduct.disabled = true;
+  productBlock.style.display = 'none';
+  resultDiv.textContent = '';
+  productResult.textContent = '';
+  clearDetails();
+}
+/** ----------------------
+ * 复制当前政策
+ * ---------------------- */
+copyPolicyBtn.addEventListener('click', ()=>{
+  const storeLabel = RULES[selectedStore]?.label||'未选择店铺';
+  const prod = productSelect.value||'未选择产品';
+  const ptType = prod.startsWith('P') ? ` - ${platinumType.options[platinumType.selectedIndex]?.text || ''}` : '';
+  const plain = `门店：${storeLabel}\n产品：${prod}${ptType}\n政策要点：\n`+
+    (detailsDiv.innerText||'（未生成政策详情）').trim()+
+    `\n——自动生成（如需飞尾，请按流程提交审批）`;
+  navigator.clipboard.writeText(plain).then(()=> alert('已复制到剪贴板'));
+});
+/** ----------------------
+ * 成交小计算器（按品类自动切换）
+ * ---------------------- */
+const calcSheet= document.getElementById('calcSheet');
+const calcPanel= document.getElementById('calcPanel');
+const calcBtn = document.getElementById('calcBtn');
+const calcDo = document.getElementById('calcDo');
+const calcClose= document.getElementById('calcClose');
+const calcGold = document.getElementById('calcGold');
+const calcSet = document.getElementById('calcSet');
+// 金料类输入
+const goldPrice = document.getElementById('goldPrice'); // 金价/克
+const laborPerGram = document.getElementById('laborPerGram'); // 工费/克
+const goldWeight = document.getElementById('goldWeight'); // 克重
+const goldFinal = document.getElementById('goldFinal'); // 客户预期成交价（可选）
+// 定价/镶嵌类输入
+const setTag = document.getElementById('setTag'); // 标价总额
+const setDeal = document.getElementById('setDeal'); // 预计成交价
+const calcOut = document.getElementById('calcOut');
+calcBtn.addEventListener('click', ()=>{
+  calcSheet.style.display='flex';
+  const prod= productSelect.value;
+  const goldCats=['G1','G3','G4','G5','G6','G7','G8','P1','P2','P3'];
+  if(goldCats.includes(prod)){
+    calcGold.style.display='block';
+    calcSet.style.display='none';
+  }else{
+    calcGold.style.display='none';
+    calcSet.style.display='block';
+  }
+  calcOut.innerHTML='';
+  // 更新链接中的日期
+  const today = new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' });
+  priceLink.textContent = `查看当日金价 - 自动显示当日日期 (${today})`;
+  priceLink.onclick = () => window.open('https://goldprice.lukfook.com/sc.html', '_blank');
+});
+calcClose.addEventListener('click', ()=>{ calcSheet.style.display='none'; });
+calcSheet.addEventListener('click', (e)=>{ if(e.target===calcSheet) calcSheet.style.display='none'; });
+function getGoldReducePerGram(store, feePerGram){
+  const table = RULES[store]?.goldReduceTable||[];
+  for(const [range, reduce] of table){
+    if(range.includes('其他')) continue;
+    if(range.includes('及以上')){
+      const base = parseFloat(range);
+      if(!isNaN(base) && feePerGram>=base) return parseFloat(reduce);
+    }else{
+      const [a,b] = range.split('-').map(s=>parseFloat(s));
+      if(!isNaN(a) && !isNaN(b) && feePerGram>=a && feePerGram<=b) return parseFloat(reduce);
+    }
+  }
+  return 0;
+}
+calcDo.addEventListener('click', ()=>{
+  const prod= productSelect.value;
+  if(!prod){ calcOut.innerHTML='请先选择产品类别。'; return; }
+  if(!selectedStore){ calcOut.innerHTML='请先选择店铺类型。'; return; }
+  const goldCats=['G1','G3','G4','G5','G6','G7','G8','P1','P2','P3'];
+  // —— 金料类计算 —— //
+  if(goldCats.includes(prod)){
+    const gp = Number(goldPrice.value||0); // 金价/克
+    const lb = Number(laborPerGram.value||0); // 工费/克
+    const w = Number(goldWeight.value||0); // 克重
+    const expect = Number(goldFinal.value||0); // 客户预期成交价（可选）
+    if(w<=0 || gp<0 || lb<0){
+      calcOut.innerHTML = '请输入有效的 金价/克、工费/克、克重。';
+      return;
+    }
+    // 授权可减/克：按“工费标价/克”匹配
+    const reducePer = getGoldReducePerGram(selectedStore, lb);
+    // 原价与授权最低价（不保留小数、且不进位）
+    const original = toInt( (gp + lb) * w );
+    const lowest = toInt( (gp + lb - reducePer) * w );
+    let html = `原价：<b>¥${original}</b>；授权最低价：<b>¥${lowest}</b>（可减/克：${reducePer} 元）`;
+    if(reducePer<=0){
+      html += `<div class="danger-note">当前工费/克未匹配到授权可减区间，属于“其他情况”，请电话审批。</div>`;
+    }
+    if(expect>0 && expect<lowest){
+      html += `<div class="danger-note">客户预期成交价（¥${toInt(expect)}）低于授权最低价，必须电话审批。</div>`;
+    }else if(expect>0){
+      html += `<div style="margin-top:6px">客户预期成交价：¥${toInt(expect)}（≥ 授权最低价，可按流程执行）。</div>`;
+    }
+    calcOut.innerHTML = html;
+    return;
+  }
+  // —— 定价/镶嵌类计算 —— //
+  const tag = Number(setTag.value||0);
+  const deal = Number(setDeal.value||0);
+  if(tag<=0 || deal<=0){
+    calcOut.innerHTML = '请输入有效的 标价总额 与 预计成交价。';
+    return;
+  }
+  const ratio = deal / tag; // 折扣
+  let html = `标价总额：¥${toInt(tag)}；预计成交价：¥${toInt(deal)}；预计折扣：<b>${(ratio*100).toFixed(1)}%</b>`;
+  if(ratio < 0.75){
+    html += `<div class="danger-note">低于 7.5 折，必须电话审批。</div>`;
+  }else{
+    html += `<div style="margin-top:6px">不低于 7.5 折（电脑单最低 8 折；A1 指定款另有新购 7.5 折政策）。请结合活动及批核流程执行。</div>`;
+  }
+  calcOut.innerHTML = html;
+});
+/** ----------------------
+ * URL 参数直达：?store=mall&prod=A1
+ * ---------------------- */
+(function autoFromURL(){
+  const q = new URLSearchParams(location.search);
+  const s = q.get('store'); const p = q.get('prod');
+  if(s && (s==='mall' || s==='nonMall')){
+    storeSelect.value=s; selectedStore=s; nextBtn.disabled=false;
+    nextBtn.click();
+    if(p){
+      productSelect.value=p;
+      confirmProduct.disabled=false;
+    }
+  }
+})();
+/** ----------------------
+ * 网络状态提示（地库/弱网）
+ * ---------------------- */
+window.addEventListener('offline', ()=> alert('当前离线，图片与外部资源可能无法加载'));
+</script>
+</body>
+</html>
