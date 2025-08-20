@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+<title>选择产品</title>
+<style>
+  /* ===== 主题色 & 基础 ===== */
+  :root{
+    --bg1:#f5e8c7;
+    --bg2:#8b0000;
+    --card: rgba(107,0,0,.98);
+    --muted: rgba(245,232,199,.16);
+    --text:#ffffff;
+    --brand:#ffe9bf;
+    --border:#ffffff;
+    --shadow:0 10px 18px rgba(0,0,0,.16);
+    --danger:#ffeb3b;
+    --chip:#ffe9bf;
+    --chip-text:#6b0000;
+    --row-alt: rgba(255,255,255,.05);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{-webkit-text-size-adjust:100%}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+    color:var(--text);
+    background:linear-gradient(135deg,var(--bg1),var(--bg2));
+    min-height:100dvh;display:flex;align-items:center;justify-content:center;
+    font-size:clamp(14px,3.6vw,16px);
+  }
+  .container{
+    width:min(96vw, 560px);
+    background:var(--card);
+    border-radius:18px;
+    padding:22px 16px 24px;
+    box-shadow:var(--shadow);
+  }
+  @supports(padding:max(0px)){
+    .container{padding-bottom:max(24px,env(safe-area-inset-bottom));}
+  }
+  .logo{width:clamp(160px,44vw,220px);display:block;margin:0 auto 12px auto;opacity:.9}
+  h1{
+    margin:8px 0 14px;
+    font-size:clamp(20px,6vw,24px);
+    line-height:1.25;text-align:center;font-weight:900;letter-spacing:.3px
+  }
+  /* ===== 表单控件 ===== */
+  .form-row{margin:14px 0 10px}
+  label{
+    display:block;margin:0 0 6px 2px;
+    font-size:clamp(14px,4.4vw,16px);
+    font-weight:800;letter-spacing:.2px
+  }
+  select,button,input{
+    width:100%;padding:14px 14px;border:none;border-radius:12px;
+    background:var(--brand);color:#5a0000;
+    font-size:clamp(15px,4.6vw,17px);font-weight:800;transition:all .2s ease
+  }
+  input{background:#fff;color:#111;border:1px solid #0002}
+  select:focus,button:focus,input:focus{outline:3px solid #fff;box-shadow:0 0 0 4px #ffffff33}
+  button.primary{margin-top:10px}
+  button[disabled]{opacity:.5;cursor:not-allowed}
+  #result,#productResult{
+    margin-top:12px;background:rgba(0,0,0,.15);
+    padding:12px;border-radius:12px;font-size:clamp(14px,4.2vw,16px)
+  }
+  /* ===== 详情显隐容器 ===== */
+  .details{overflow:hidden;max-height:0;opacity:0;transition:max-height .4s ease,opacity .35s ease;margin-top:8px}
+  .details.show{opacity:1;max-height:6000px}
+  /* ===== 表格样式 ===== */
+  .table-wrap{
+    overflow-x:auto;-webkit-overflow-scrolling:touch;
+    background:var(--muted);border-radius:12px;border:1px solid var(--border)
+  }
+  .table-wrap::-webkit-scrollbar{height:0px}
+  table{width:100%;border-collapse:collapse;min-width:560px}
+  th,td{
+    border:1px solid var(--border);padding:12px 8px;text-align:left;
+    font-size:clamp(13px,4vw,15px);line-height:1.45;
+    white-space:normal;overflow:visible;
+    word-break:break-word;overflow-wrap:anywhere;
+  }
+  tr:nth-child(even) td{background:var(--row-alt)}
+  th{background:#6b0000;position:sticky;top:0}
+  .pro-table caption{
+    text-align:left;font-weight:900;padding:10px 12px;color:#fff;
+    font-size:clamp(16px,5vw,18px);
+    letter-spacing:.2px
+  }
+  /* ===== 手机版适配：杜绝横向滚动 ===== */
+  @media (max-width: 520px){
+    .table-wrap{overflow-x:hidden !important}
+    table{min-width:0 !important;table-layout:fixed !important;width:100% !important}
+    th,td{padding:10px 6px;font-size:15px;word-break:break-all;line-break:anywhere}
+    .pro-table caption{font-size:17px;padding:8px 10px}
+  }
+  /* ===== 分支导航（chips） ===== */
+  .sticky-subnav{
+    position:sticky;top:0;z-index:5;background:rgba(107,0,0,.98);
+    backdrop-filter:blur(6px);padding:8px 6px;border-radius:12px;border:1px solid #ffffff55;margin:-2px 0 8px 0
+  }
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{
+    background:var(--chip);color:var(--chip-text);border:none;border-radius:999px;padding:8px 13px;
+    font-weight:900;font-size:13px;cursor:pointer;box-shadow:0 2px 0 #0000001f;transition:all .2s ease
+  }
+  .chip:hover{transform:translateY(-2px);box-shadow:0 4px 6px #0000001f}
+  .chip.active{background:#fff;color:#6b0000;outline:2px solid #fff8}
+  /* ===== 手风琴 ===== */
+  details.policy{background:var(--muted);border:1px solid var(--border);border-radius:12px;margin:10px 0;transition:all .3s ease}
+  details.policy[open]{box-shadow:inset 0 0 0 1px #fff3}
+  details.policy summary{
+    list-style:none;cursor:pointer;padding:12px 12px;border-radius:12px;font-weight:900;
+    display:flex;align-items:center;gap:8px;font-size:clamp(15px,4.6vw,17px);transition:all .2s ease
+  }
+  details.policy summary:hover{background:rgba(255,255,255,.05)}
+  details.policy summary::-webkit-details-marker{display:none}
+  .arrow{transition:transform .25s ease}
+  details[open] .arrow{transform:rotate(90deg)}
+  .note{font-size:13px;opacity:.95;margin:6px 2px 0 2px}
+  /* ===== 图片网格（用于 A1 指定款） ===== */
+  .grid{display:grid;grid-template-columns:1fr;gap:10px;margin:10px 0}
+  /* 改成始终两列，以便 iPhone 一屏能看到两张图 */
+  .grid-two-cols{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0,1fr));
+    gap:10px;
+  }
+  .grid-item{
+    background:var(--muted);padding:8px;border:1px solid var(--border);
+    border-radius:12px;transition:all .3s ease
+  }
+  .grid-item:hover{box-shadow:0 4px 8px rgba(255,255,255,.2)}
+  .grid-item a{display:block;text-decoration:none}
+  .grid-item img{
+    width:100%;height:auto;border-radius:10px;display:block;max-width:100%;
+    aspect-ratio: 4 / 5;           /* 保持高竖图比例，避免过长 */
+    object-fit:cover;               /* 充满卡片 */
+  }
+  .img-caption{margin-top:6px;font-size:14px;color:#fff;text-align:center;font-weight:900}
+  .alert-text{background:yellow;color:#b00000;font-size:clamp(14px,4.6vw,16px);font-weight:900;padding:2px 6px;border-radius:6px}
+  .footer-info{margin-top:12px;font-size:clamp(12px,3.8vw,14px);color:#ffe9bf;border-top:1px solid #f5e8c7;padding-top:10px}
+  .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  @media (max-width:380px){.actions{grid-template-columns:1fr}}
+  .ghost{background:transparent;color:#fff;border:1px solid #fff7;transition:all .2s ease}
+  .ghost:hover{background:#fff2;color:#6b0000}
+  .danger-note{background:var(--danger);color:#7a0000;border-radius:10px;padding:8px 10px;margin-top:8px;font-weight:900}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  /* ===== 计算器抽屉 ===== */
+  #calcSheet{display:none;background:#0008;position:fixed;inset:0;z-index:50;align-items:flex-end;transition:opacity .3s ease}
+  #calcPanel{background:#fff;color:#222;width:100%;border-radius:18px 18px 0 0;padding:16px 12px;max-height:76vh;overflow:auto;transition:transform .3s ease}
+  #calcPanel h3{margin:4px 0 10px;font-size:clamp(18px,5vw,20px);color:#6b0000;font-weight:900}
+  .subtle{font-size:clamp(12px,3.6vw,13px);color:#666;margin:4px 0 10px}
+  #calcGold,#calcSet{display:none}
+  #calcOut{margin-top:10px;font-size:clamp(14px,4.2vw,16px)}
+  #priceLinkContainer{margin-top:10px;border-top:1px solid #ccc;padding-top:10px;text-align:center}
+  #priceLink{font-size:clamp(14px,4.2vw,16px);color:#0b73ff;text-decoration:underline;cursor:pointer}
+  /* ===== 拨号弹层（替代浮动圆钮） ===== */
+  #callFab{display:none}
+  #callSheet{display:none;position:fixed;inset:0;background:#0007;z-index:70;align-items:flex-end}
+  #callPanel{
+    background:#fff;color:#111;width:100%;border-radius:18px 18px 0 0;padding:12px 12px 16px;
+    box-shadow:0 -10px 20px rgba(0,0,0,.2)
+  }
+  #callPanel h4{margin:4px 0 10px;font-weight:900;color:#6b0000;font-size:18px}
+  .callBtn{width:100%;padding:13px 14px;margin:8px 0;border:none;border-radius:12px;font-size:16px;font-weight:900;background:#f2f2f2;color:#111}
+  .callBtn.primary{background:#21c55d;color:#fff}
+  .callClose{background:transparent;border:1px solid #ccc}
+  @supports(padding:max(0px)){#callPanel{padding-bottom:max(16px,env(safe-area-inset-bottom))}}
+  /* 初始提示 */
+  .initial-prompt{margin-bottom:16px;background:rgba(0,0,0,.15);padding:12px;border-radius:12px;font-size:clamp(14px,4.2vw,16px);line-height:1.5}
+  .initial-prompt a{color:#0b73ff;text-decoration:underline}
+</style>
+</head>
+<body>
+  <main class="container" role="main">
+    <img src="https://www.lukfookeshop.com.cn/_nuxt/img/lfg-logo.60149f7.png" alt="Lukfook Logo" class="logo" />
+    <h1>赋予管理层促成生意的额度</h1>
+    <div class="initial-prompt">在查询黄金折扣前，请先确认当日金价是否正确。可点击<a href="https://goldprice.lukfook.com/sc.html" target="_blank">此链接</a>查看最新金价（即使在家也能查询）。</div>
+
+    <div class="form-row">
+      <label for="storeSelect">店铺类型</label>
+      <select id="storeSelect" aria-describedby="storeHelp">
+        <option value="">请选择店铺类型</option>
+        <option value="nonMall">非商场扣点运作店铺（不扣点）</option>
+        <option value="mall">商场联营店铺（扣点）：HTF、ZHC</option>
+      </select>
+      <div id="storeHelp" class="sr-only">先选择店铺类型，再进行下一步</div>
+    </div>
+
+    <button id="nextBtn" class="primary" disabled aria-disabled="true">下一步</button>
+    <div id="result" aria-live="polite"></div>
+
+    <div id="productBlock" style="display:none">
+      <div class="form-row">
+        <label for="productSelect">产品类别</label>
+        <select id="productSelect" aria-describedby="productHelp">
+          <option value="">请选择产品</option>
+          <option value="G1">G1</option><option value="G3">G3</option><option value="G4">G4</option>
+          <option value="G5">G5</option><option value="G6">G6</option><option value="G7">G7</option>
+          <option value="G8">G8</option><option value="G8摆件">G8 摆件</option>
+          <option value="P1">P1</option><option value="P2">P2</option><option value="P3">P3</option>
+          <option value="A1">A1</option><option value="T1">T1</option>
+          <option value="J1">J1</option><option value="J2">J2</option><option value="J3">J3</option>
+          <option value="J4">J4</option><option value="J5">J5</option><option value="J6">J6</option>
+          <option value="S1">S1</option><option value="E1">E1</option>
+          <option value="购金及换货">购金及换货</option>
+        </select>
+        <div id="productHelp" class="sr-only">选择产品后点击确认查看折扣与政策</div>
+      </div>
+
+      <div class="form-row" id="platinumTypeBlock" style="display:none">
+        <label for="platinumType">铂金类型</label>
+        <select id="platinumType">
+          <option value="">请选择铂金类型</option>
+          <option value="足铂999">足铂999/足铂</option>
+          <option value="Pt950">Pt 950</option>
+        </select>
+      </div>
+
+      <div class="form-row" id="exchangeTypeBlock" style="display:none">
+        <label for="exchangeType">换购类型</label>
+        <select id="exchangeType">
+          <option value="">请选择换购类型</option>
+          <option value="gold">黄金</option>
+          <option value="platinum">铂金</option>
+          <option value="au750">18K金 (Au750)</option>
+        </select>
+      </div>
+
+      <div class="actions">
+        <button id="confirmProduct" class="primary" disabled aria-disabled="true">确认</button>
+        <button id="resetBtn" class="ghost">清空</button>
+      </div>
+
+      <!-- 顶部显眼“审批直拨”入口（替代浮动绿色按钮） -->
+      <button id="openCallTop" class="ghost" style="margin-top:8px">审批直拨</button>
+
+      <button id="copyPolicy" class="ghost" style="margin-top:8px">复制当前政策到剪贴板</button>
+      <button id="calcBtn" class="primary" style="margin-top:6px">快速计算成交价</button>
+    </div>
+
+    <div id="productResult" aria-live="polite"></div>
+    <section id="details" class="details" aria-label="折扣与政策详情"></section>
+  </main>
+
+  <!-- 计算器抽屉 -->
+  <div id="calcSheet">
+    <div id="calcPanel">
+      <h3>成交小计算器</h3>
+      <div class="subtle">根据当前选择的“店铺类型 & 产品类别”自动切换计算方式。</div>
+
+      <div id="calcGold">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <input id="goldPrice" type="text" inputmode="decimal" placeholder="金价/克" />
+          <input id="laborPerGram" type="text" inputmode="decimal" placeholder="工费/克" />
+          <input id="goldWeight" type="text" inputmode="decimal" placeholder="克重(g)" />
+          <input id="goldFinal" type="text" inputmode="decimal" placeholder="客户预期成交价(¥,可选)" />
+        </div>
+      </div>
+
+      <div id="calcSet">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <input id="setTag" type="text" inputmode="decimal" placeholder="标价总额(¥)" />
+          <input id="setDeal" type="text" inputmode="decimal" placeholder="预计成交价(¥)" />
+        </div>
+      </div>
+
+      <div id="calcOut"></div>
+
+      <div id="priceLinkContainer"><span id="priceLink">查看当日金价</span></div>
+
+      <div style="display:flex;gap:10px;margin-top:10px">
+        <button id="calcDo" class="primary" style="flex:1">计算</button>
+        <button id="openCallFromCalc" class="ghost" style="flex:1">审批直拨</button>
+        <button id="calcClose" class="ghost" style="flex:1">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 拨号弹层 -->
+  <div id="callSheet" role="dialog" aria-modal="true" aria-labelledby="callTitle">
+    <div id="callPanel">
+      <h4 id="callTitle">联系审批人</h4>
+      <button class="callBtn primary" data-tel="13510351309">曾曙昕（135 1035 1309）</button>
+      <button class="callBtn primary" data-tel="15817468347">陈敬裕（158 1746 8347）</button>
+      <button class="callBtn callClose">取消</button>
+    </div>
+  </div>
+
+<script>
+/** 基础配置 */
+const VERSION_TEXT='规则版本：2025-08-15 生效';
+const CNY=new Intl.NumberFormat('zh-CN');
+
+/** 规则 */
+const RULES={
+  nonMall:{label:'非商场扣点运作店铺（不扣点）',goldReduceTable:[
+    ['30 - 50','60'],['51 - 70','65'],['71 - 90','70'],['91 及以上','80'],['其他情况','必须联系管理层并申请']
+  ]},
+  mall:{label:'商场联营店铺（扣点）：HTF、ZHC',goldReduceTable:[
+    ['30 - 50','55'],['51 - 70','60'],['71 - 90','65'],['91 及以上','75'],['其他情况','必须联系管理层并申请']
+  ]},
+  common:{
+    tableHead(label){return `
+      <div class="table-wrap"><table class="pro-table">
+        <caption>${label}</caption>
+        <tr><th class="small">工费标价范围（元/克）</th><th class="small">可减金额（元/克）</th></tr>
+    `},
+    setInlayTable(){return `
+      <div class="table-wrap"><table class="pro-table">
+        <caption>镶嵌类及定价类货品折扣授权</caption>
+        <tr><th class="small">情况</th><th class="small">折扣范围</th></tr>
+        <tr><td>所有价格</td><td>75 折及以上</td></tr>
+      </table></div>`},
+    /* —— J1 专属“特殊货品”说明（仅 J1 时显示）—— */
+    j1Special(){return `
+      <div class="table-wrap"><table class="pro-table">
+        <caption>J1 特殊货品政策</caption>
+        <tr><td>特殊货品</td>
+            <td><strong>主钻重量 ≥ 0.50 克拉</strong>的 J1 单钻戒指，可直接执行<strong> 65 折</strong>折扣，<strong>无需电话审批</strong>。</td></tr>
+        <tr><td>其他 J1 货品</td><td>按镶嵌类通用授权执行（<strong>75 折及以上</strong>）。</td></tr>
+      </table></div>`},
+    g8Decoration(){return `
+      <div class="table-wrap"><table class="pro-table">
+        <caption>G8 素金类摆件折扣政策</caption>
+        <tr><td>无集团官方活动折扣</td><td>如顾客主动要求成交价超出相关会员折扣范围，可即时成交</td></tr>
+        <tr><td>有集团官方活动折扣</td><td>如顾客主动要求成交价超出官方活动折扣范围，必须联系公司管理层并提交申请</td></tr>
+      </table></div>`},
+    buyExchangeIntro(){return `
+      <div class="table-wrap"><table class="pro-table">
+        <caption>购金及换货政策（总则）</caption>
+        <tr><th class="small">范围</th><td>黄金、铂金、18K金（Au750）等材质的购金与换购业务。</td></tr>
+        <tr><th class="small">审批红线</th><td>超出各材质授权区间，或与官方活动叠加导致成交价低于底线的，必须联系管理层并申请批准。</td></tr>
+      </table></div>`},
+    /** —— A1 专用块：文本 + 指定款两图网格 —— */
+    iceDiamondBlock(){return `
+      <div class="grid">
+        <div class="grid-item">
+          ${RULES.common.setInlayTable()}
+          <div style="margin-top:6px">
+            <strong>冰·钻光影金系列优惠政策</strong><br>
+            1. 单笔交易标价总额≥10,000元，可享 7.5 折。<br>
+            2. 指定款 029591PB / 029591BC 新购可享 7.5 折（单独购买按现行标价）。<br>
+            3. 折扣审批：需经 Kenny / 曾生批准，采用 <span class="alert-text">飞尾</span> 出单，电脑单最低 8 折。
+          </div>
+        </div>
+
+        <!-- ✅ 只在 A1 下显示的图片网格；两列布局，iPhone 也能一次看到两张 -->
+        <div class="grid-two-cols">
+          <div class="grid-item">
+            <a href="https://www.lukfook.com/content/uploads/2025/04/67f5f318c16d1.jpg" target="_blank" rel="noopener">
+              <img loading="lazy" src="https://www.lukfook.com/content/uploads/2025/04/67f5f318c16d1.jpg" alt="冰·钻玫瑰 029591PB">
+              <div class="img-caption">029591PB</div>
+            </a>
+          </div>
+          <div class="grid-item">
+            <a href="https://www.lukfook.com/content/uploads/2025/04/67f5f31a042e1.jpg" target="_blank" rel="noopener">
+              <img loading="lazy" src="https://www.lukfook.com/content/uploads/2025/04/67f5f31a042e1.jpg" alt="冰·钻玫瑰 029591BC">
+              <div class="img-caption">029591BC</div>
+            </a>
+          </div>
+        </div>
+      </div>`},
+    /** —— 换购类型块 —— */
+    exchangeBlock(type){
+      if(type==='platinum'){return `
+        <div class="table-wrap"><table class="pro-table">
+          <caption>铂金换购优惠政策（单位：元/克）</caption>
+          <tr><th class="small">说明</th><td colspan="3">“0%”=1:1 等重；“30%”=新铂金 ≥ 旧铂金 130%；“60%”=新铂金 ≥ 旧铂金 160%。</td></tr>
+          <tr><th class="small">工费区间（元/克）</th><th class="small">0%</th><th class="small">30%</th><th class="small">60%</th></tr>
+          <tr><td>≤ 60</td><td>40</td><td>55</td><td>70</td></tr>
+          <tr><td>61 – 80</td><td>45</td><td>60</td><td>75</td></tr>
+          <tr><td>81 – 100</td><td>50</td><td>65</td><td>80</td></tr>
+          <tr><td>101 – 120</td><td>55</td><td>70</td><td>85</td></tr>
+          <tr><td>≥ 121</td><td>60</td><td>75</td><td>90</td></tr>
+        </table></div>
+        <div class="note">如叠加活动导致低于授权线，须在成交前电话审批并备案。</div>`;}
+      if(type==='gold'){return `
+        <div class="sticky-subnav" id="goldSubnav">
+          <div class="chips">
+            <button class="chip" data-gp="gold-sell">黄金↔黄金（卖出价）</button>
+            <button class="chip" data-gp="gold-tradein">黄金↔黄金（换购价）</button>
+            <button class="chip" data-gp="gold-a1">黄金↔A1</button>
+            <button class="chip" data-gp="gold-j1j5">黄金↔J1–J5</button>
+          </div>
+        </div>
+        <details class="policy" data-policy-id="gold-sell">
+          <summary><span class="arrow">▶</span> 黄金换黄金（以卖出价换购）</summary>
+          <div class="table-wrap"><table class="pro-table">
+            <caption>黄金换黄金（以卖出价换购）</caption>
+            <tr><th class="small">换购比例</th><td>新购黄金重量需 ≥ 旧黄金重量的 1.3 倍；低于 1.3 倍须电话申请审批。</td></tr>
+            <tr><th class="small">特殊情形</th><td>极端情况下可按 1:1 等重换货，但仅限 工费 ≥ 200 元/克 且经审批后执行。</td></tr>
+            <tr><th class="small">折扣限制</th><td>上述两种情形下，不得再给予任何折扣。</td></tr>
+          </table></div>
+        </details>
+        <details class="policy" data-policy-id="gold-tradein">
+          <summary><span class="arrow">▶</span> 黄金换黄金（按换购价核算）</summary>
+          <div class="table-wrap"><table class="pro-table">
+            <caption>黄金换黄金（按换购价核算）</caption>
+            <tr><th class="small">计价方式</th><td>采用公司当日卖出金价核算，按标签工费区间执行以下每克折扣标准。</td></tr>
+            <tr><th class="small">工费区间（元/克）</th><th class="small">折扣标准（每克）</th></tr>
+            <tr><td>工费 ≤ 45</td><td>工费全免（仅计卖出金价）</td></tr>
+            <tr><td>46 – 65</td><td>(金价 + 工费) - 55 元</td></tr>
+            <tr><td>66 – 85</td><td>(金价 + 工费) - 65 元</td></tr>
+            <tr><td>86 – 105</td><td>(金价 + 工费) - 75 元</td></tr>
+            <tr><td>106 – 125</td><td>(金价 + 工费) - 85 元</td></tr>
+          </table></div>
+          <div class="note">说明：“卖出金价”为公司当日卖出金价；折扣按上表执行。</div>
+        </details>
+        <details class="policy" data-policy-id="gold-a1">
+          <summary><span class="arrow">▶</span> 黄金换 A1（以卖出价换购）</summary>
+          <div class="table-wrap"><table class="pro-table">
+            <caption>黄金换 A1 旧金换购政策（以卖出价换购）</caption>
+            <tr><th class="small">折扣授权</th><td>授权 9.5 折；无需补差价，直接以等值旧金换购。</td></tr>
+            <tr><th class="small">审批要求</th><td>低于 9.5 折须电话申请审批。</td></tr>
+          </table></div>
+          <div class="note">备注：仅限换购场景；新购 A1 货品按标价执行。</div>
+        </details>
+        <details class="policy" data-policy-id="gold-j1j5">
+          <summary><span class="arrow">▶</span> 黄金换 J1–J5（以卖出价换购）</summary>
+          <div class="table-wrap"><table class="pro-table">
+            <caption>黄金换 J1–J5 旧金换购政策（以卖出价换购）</caption>
+            <tr><th class="small">适用范围</th><td>适用于所有 J1–J5 货品；按公司当日卖出金价计算。</td></tr>
+            <tr><th class="small">折扣授权</th><td>授权上限：85 折；低于 85 折须电话申请审批。</td></tr>
+            <tr><th class="small">补差原则</th><td>可换等值货品，无需补差价。</td></tr>
+          </table></div>
+        </details>
+      `;}
+      if(type==='au750'){return `
+        <div class="table-wrap"><table class="pro-table">
+          <caption>18K金（Au750）换购政策</caption>
+          <tr><th class="small">适用范围</th><td>旧 K 金（Au750）换购公司 18K 金相关货品。</td></tr>
+          <tr><th class="small">执行口径</th><td>依据材质、工艺与标签工费核算；默认不低于授权折扣线，特殊情况须审批。</td></tr>
+          <tr><th class="small">审批要求</th><td>如顾客诉求导致成交价低于授权线或跨活动叠加，须报管理层审批。</td></tr>
+        </table></div>`;}
+      return `<div class="table-wrap"><table class="pro-table"><caption>购金及换货政策</caption><tr><td>请选择具体“换购类型”以查看对应政策。</td></tr></table></div>`;
+    },
+    s1e1(){return `
+      <div class="table-wrap"><table class="pro-table">
+        <caption>S1 及 E1 折扣政策</caption>
+        <tr><td>原则性规定</td><td>原则上不提供任何折扣。</td></tr>
+        <tr><td>例外情况</td><td>如需提供少量折扣，需由店面管理层联系公司领导进行审批。</td></tr>
+      </table></div>`},
+    footer(){return `
+      <div class="footer-info">
+        <strong>操作与政策指引</strong><br>
+        1. <strong>即时成交</strong>：在符合公司政策前提下可先行成交，但须按行政部要求通过企业微信完成备案与审批。<br>
+        2. <strong>目标与期望</strong>：赋能一线，提高灵活度，把握商机，持续提升业绩。<br>
+        3. <strong>最终解释权</strong>：归行政部。联系：
+           <a href="tel:13510351309" style="color:#fff;font-weight:900">曾曙昕（135 1035 1309）</a>、
+           <a href="tel:15817468347" style="color:#fff;font-weight:900">陈敬裕（158 1746 8347）</a><br>
+        <span style="opacity:.9">${VERSION_TEXT}</span>
+      </div>`}
+  }
+};
+
+/** 元素引用 & 状态 */
+let selectedStore='';
+const el=id=>document.getElementById(id);
+const storeSelect=el('storeSelect'),nextBtn=el('nextBtn'),resultDiv=el('result');
+const productBlock=el('productBlock'),productSelect=el('productSelect');
+const platinumTypeBlock=el('platinumTypeBlock'),platinumType=el('platinumType');
+const exchangeTypeBlock=el('exchangeTypeBlock'),exchangeType=el('exchangeType');
+const confirmProduct=el('confirmProduct'),resetBtn=el('resetBtn');
+const productResult=el('productResult'),detailsDiv=el('details');
+const copyPolicyBtn=el('copyPolicy'),priceLink=el('priceLink');
+const openCallTop=el('openCallTop'),openCallFromCalc=el('openCallFromCalc');
+const callSheet=el('callSheet');
+
+/** 工具函数 */
+const todayStr=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+function scrollIntoViewSmooth(target){requestAnimationFrame(()=>target.scrollIntoView({behavior:'smooth',block:'start'}))}
+function setDetails(html){detailsDiv.innerHTML=html;detailsDiv.classList.add('show');postRenderInit();scrollIntoViewSmooth(detailsDiv)}
+function clearDetails(){detailsDiv.innerHTML='';detailsDiv.classList.remove('show')}
+function moneyRound(n){return Math.round(Number(n)||0)}
+function fmt(n){return `¥${CNY.format(moneyRound(n))}`};
+function normNumInput(val){val=String(val??'').replace(/[^\d.]/g,'');if((val.match(/\./g)||[]).length>1){const i=val.indexOf('.');val=val.slice(0,i+1)+val.slice(i+1).replace(/\./g,'')}return val}
+function getNum(id){return Number(normNumInput(el(id).value)||0)}
+function setDisabled(btn,dis){btn.disabled=!!dis;btn.setAttribute('aria-disabled',dis?'true':'false')}
+
+/** 选择流程 */
+storeSelect.addEventListener('change',()=>{selectedStore=storeSelect.value;setDisabled(nextBtn,!selectedStore);resultDiv.textContent='';productResult.textContent='';clearDetails()});
+nextBtn.addEventListener('click',()=>{if(!selectedStore){resultDiv.textContent='请选择店铺类型';return}
+  const label=RULES[selectedStore]?.label||'';resultDiv.textContent=`您已选择：${label}。请继续选择产品类别。`;
+  productBlock.style.display='block';setDisabled(confirmProduct,!productSelect.value);scrollIntoViewSmooth(productBlock)
+});
+productSelect.addEventListener('change',()=>{const product=productSelect.value||'';
+  if(product.startsWith('P')){platinumTypeBlock.style.display='block'}else{platinumTypeBlock.style.display='none';platinumType.value=''}
+  if(product==='购金及换货'){exchangeTypeBlock.style.display='block'}else{exchangeTypeBlock.style.display='none';exchangeType.value=''}
+  const needPt=product.startsWith('P')&&!platinumType.value;const needEx=(product==='购金及换货')&&!exchangeType.value;
+  setDisabled(confirmProduct,!product||needPt||needEx);productResult.textContent='';clearDetails()
+});
+platinumType.addEventListener('change',()=>{if(productSelect.value.startsWith('P'))setDisabled(confirmProduct,!platinumType.value)});
+exchangeType.addEventListener('change',()=>{if(productSelect.value==='购金及换货')setDisabled(confirmProduct,!exchangeType.value)});
+
+confirmProduct.addEventListener('click',()=>{
+  const product=productSelect.value||'';
+  if(!product){productResult.textContent='请选择一个产品';return}
+  if(product.startsWith('P')&&!platinumType.value){productResult.textContent='请选择铂金类型';return}
+  if(product==='购金及换货'&&!exchangeType.value){productResult.textContent='请选择换购类型';return}
+
+  let displayProduct=product;
+  if(product.startsWith('P'))displayProduct+=` - ${platinumType.options[platinumType.selectedIndex].text}`;
+  if(product==='购金及换货'){const exText=exchangeType.options[exchangeType.selectedIndex].text;displayProduct+=` - ${exText}`;}
+  productResult.textContent=`您选择的产品是：${displayProduct}，折扣与政策如下：`;
+
+  let html='';
+  const storeCfg=RULES[selectedStore];
+  const goldCats=['G1','G3','G4','G5','G6','G7','G8','P1','P2','P3'];
+
+  if(goldCats.includes(product)){
+    html+=RULES.common.tableHead(selectedStore==='nonMall'?'非商场扣点运作店铺折扣授权':'商场联营店铺折扣授权');
+    for(const row of storeCfg.goldReduceTable){html+=`<tr><td>${row[0]}</td><td>${row[1]}</td></tr>`}
+    html+=`</table></div>`;
+  }else if(product==='G8摆件'){
+    html+=RULES.common.g8Decoration()
+  }else if(product==='购金及换货'){
+    html+=RULES.common.buyExchangeIntro();
+    html+=RULES.common.exchangeBlock(exchangeType.value)
+  }else if(product==='A1'){
+    /* ✅ A1：显示文本 + 指定款图片网格（两列，iPhone 也能一次看完） */
+    html+=RULES.common.iceDiamondBlock()
+  }else if(['T1','J2','J3','J4','J5','J6'].includes(product)){
+    html+=RULES.common.setInlayTable()
+  }else if(product==='J1'){
+    html+=RULES.common.setInlayTable();
+    html+=RULES.common.j1Special();
+  }else if(['S1','E1'].includes(product)){
+    html+=RULES.common.s1e1()
+  }
+
+  html+=RULES.common.footer();
+  setDetails(html)
+});
+
+resetBtn.addEventListener('click',()=>{
+  storeSelect.value='';productSelect.value='';platinumType.value='';exchangeType.value='';
+  platinumTypeBlock.style.display='none';exchangeTypeBlock.style.display='none';selectedStore='';
+  setDisabled(nextBtn,true);setDisabled(confirmProduct,true);
+  productBlock.style.display='none';resultDiv.textContent='';productResult.textContent='';clearDetails()
+});
+
+/** 复制政策 */
+copyPolicyBtn.addEventListener('click',()=>{
+  const storeLabel=RULES[selectedStore]?.label||'未选择店铺';
+  const prod=productSelect.value||'未选择产品';
+  const pt=prod.startsWith('P')?` - ${platinumType.options[platinumType.selectedIndex]?.text||''}`:'';
+  const ex=(prod==='购金及换货')?` - ${exchangeType.options[exchangeType.selectedIndex]?.text||''}`:'';
+  const plain=`日期：${todayStr()}\n门店：${storeLabel}\n产品：${prod}${pt}${ex}\n政策要点：\n`+(detailsDiv.innerText||'（未生成政策详情）').trim()+`\n——自动生成（如需飞尾，请按流程提交审批）`;
+  navigator.clipboard.writeText(plain).then(()=>alert('已复制到剪贴板'))
+});
+
+/** 计算器 */
+const calcSheet=el('calcSheet'),calcPanel=el('calcPanel'),calcBtn=el('calcBtn'),calcDo=el('calcDo'),calcClose=el('calcClose');
+const calcGold=el('calcGold'),calcSet=el('calcSet');
+const goldPrice=el('goldPrice'),laborPerGram=el('laborPerGram'),goldWeight=el('goldWeight'),goldFinal=el('goldFinal');
+const setTag=el('setTag'),setDeal=el('setDeal'),calcOut=el('calcOut');
+
+calcBtn.addEventListener('click',()=>{
+  calcSheet.style.display='flex';
+  const prod=productSelect.value;
+  const goldCats=['G1','G3','G4','G5','G6','G7','G8','P1','P2','P3'];
+  if(goldCats.includes(prod)){calcGold.style.display='block';calcSet.style.display='none'}
+  else{calcGold.style.display='none';calcSet.style.display='block'}
+  calcOut.innerHTML='';
+  const today=todayStr().replace(/-/g,'/');
+  priceLink.textContent=`查看当日金价（${today}）`;
+  priceLink.onclick=()=>window.open('https://goldprice.lukfook.com/sc.html','_blank');
+  (goldCats.includes(prod)?goldPrice:setTag).focus()
+});
+calcClose.addEventListener('click',()=>{calcSheet.style.display='none'});
+calcSheet.addEventListener('click',e=>{if(e.target===calcSheet)calcSheet.style.display='none'});
+[goldPrice,laborPerGram,goldWeight,goldFinal,setTag,setDeal].forEach(i=>i.addEventListener('input',()=>{i.value=normNumInput(i.value)}));
+
+function getGoldReducePerGram(store,feePerGram){
+  const table=RULES[store]?.goldReduceTable||[];
+  const fee=Number(feePerGram)||0;
+  for(const [range,reduce] of table){
+    if(range.includes('其他'))continue;
+    if(range.includes('及以上')){
+      const base=parseFloat(range);
+      if(!isNaN(base)&&fee>=base)return parseFloat(reduce)
+    }else{
+      const [a,b]=range.split('-').map(s=>parseFloat(s));
+      if(!isNaN(a)&&!isNaN(b)&&fee>=a&&fee<=b)return parseFloat(reduce)
+    }
+  }
+  return 0
+}
+
+calcDo.addEventListener('click',()=>{
+  const prod=productSelect.value;if(!prod){calcOut.innerHTML='请先选择产品类别。';return}
+  if(!selectedStore){calcOut.innerHTML='请先选择店铺类型。';return}
+  const goldCats=['G1','G3','G4','G5','G6','G7','G8','P1','P2','P3'];
+  if(goldCats.includes(prod)){
+    const gp=getNum('goldPrice'),lb=getNum('laborPerGram'),w=getNum('goldWeight'),expect=getNum('goldFinal');
+    if(w<=0||gp<0||lb<0){calcOut.innerHTML='请输入有效的 金价/克、工费/克、克重。';return}
+    const reducePer=getGoldReducePerGram(selectedStore,lb);
+    const original=moneyRound((gp+lb)*w),lowest=moneyRound((gp+lb-reducePer)*w);
+    let html=`原价：<b>${fmt(original)}</b>；授权最低价：<b>${fmt(lowest)}</b>（可减/克：${CNY.format(reducePer)} 元）`;
+    if(reducePer<=0)html+='<div class="danger-note">当前工费/克未匹配到授权可减区间，属于“其他情况”，请电话审批。<br><a href="tel:13510351309" style="color:#111">曾曙昕 (135 1035 1309)</a><br><a href="tel:15817468347" style="color:#111">陈敬裕 (158 1746 8347)</a></div>';
+    if(expect>0&&expect<lowest)html+=`<div class="danger-note">客户预期成交价（${fmt(expect)}）低于授权最低价，必须电话审批。<br><a href="tel:13510351309" style="color:#111">曾曙昕 (135 1035 1309)</a><br><a href="tel:15817468347" style="color:#111">陈敬裕 (158 1746 8347)</a></div>`;
+    else if(expect>0)html+=`<div style="margin-top:6px">客户预期成交价：${fmt(expect)}（≥ 授权最低价，可按流程执行）。</div>`;
+    calcOut.innerHTML=html;return
+  }
+  const tag=getNum('setTag'),deal=getNum('setDeal');
+  if(tag<=0||deal<=0){calcOut.innerHTML='请输入有效的 标价总额 与 预计成交价。';return}
+  const ratio=deal/tag;
+  let html=`标价总额：${fmt(tag)}；预计成交价：${fmt(deal)}；预计折扣：<b>${(ratio*100).toFixed(1)}%</b>`;
+  if(ratio<0.75)html+='<div class="danger-note">低于 7.5 折，必须电话审批。<br><a href="tel:13510351309" style="color:#111">曾曙昕 (135 1035 1309)</a><br><a href="tel:15817468347" style="color:#111">陈敬裕 (158 1746 8347)</a></div>';
+  else html+='<div style="margin-top:6px">不低于 7.5 折（电脑单最低 8 折；A1 指定款另有新购 7.5 折政策）。请结合活动及批核流程执行。</div>';
+  calcOut.innerHTML=html
+});
+
+/** URL 直达参数 */
+(function autoFromURL(){
+  const q=new URLSearchParams(location.search);const s=q.get('store');const p=q.get('prod');const ex=q.get('ex');const gp=q.get('gp');
+  if(s&&(s==='mall'||s==='nonMall')){
+    storeSelect.value=s;selectedStore=s;setDisabled(nextBtn,false);nextBtn.click();
+    if(p){
+      productSelect.value=p;
+      if(p==='购金及换货'){
+        exchangeTypeBlock.style.display='block';
+        if(ex&&['gold','platinum','au750'].includes(ex)){exchangeType.value=ex}
+      }
+      setDisabled(confirmProduct,!productSelect.value||(p.startsWith('P')&&!platinumType.value)||(p==='购金及换货'&&!exchangeType.value))
+    }
+    if(gp) window.__GP_DEEPLINK = gp;
+  }
+})();
+
+/** 渲染后绑定（chips/手风琴/深链） */
+function postRenderInit(){
+  const subnav=document.getElementById('goldSubnav');
+  if(subnav){
+    const chips=[...subnav.querySelectorAll('.chip')];
+    chips.forEach(ch=>{ ch.addEventListener('click',()=>{activateGoldPolicy(ch.dataset.gp,true)}) });
+    const deep=window.__GP_DEEPLINK;delete window.__GP_DEEPLINK;
+    activateGoldPolicy(deep||'gold-sell',false);
+  }
+}
+function activateGoldPolicy(id,scroll=true){
+  const chips=document.querySelectorAll('#goldSubnav .chip');chips.forEach(c=>c.classList.toggle('active',c.dataset.gp===id));
+  const all=[...detailsDiv.querySelectorAll('details.policy[data-policy-id]')];
+  all.forEach(d=>{d.open = (d.dataset.policyId===id)});
+  if(scroll){
+    const target=detailsDiv.querySelector(`details.policy[data-policy-id="${id}"]`);
+    if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+}
+
+/** 拨号弹层：两个入口（顶部按钮 & 计算器内按钮） */
+function openCallSheet(){ document.getElementById('callSheet').style.display='flex'; }
+openCallTop.addEventListener('click',openCallSheet);
+openCallFromCalc.addEventListener('click',openCallSheet);
+callSheet.addEventListener('click',(e)=>{ if(e.target===callSheet) callSheet.style.display='none'; });
+document.querySelector('#callPanel .callClose').addEventListener('click',()=>{callSheet.style.display='none'});
+document.querySelectorAll('#callPanel .callBtn.primary').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const tel=btn.dataset.tel;
+    if(confirm(`是否拨打 ${tel} 进行审批？`)){
+      window.location.href=`tel:${tel}`;
+    }
+  });
+});
+
+/** 网络状态提示 */
+window.addEventListener('offline',()=>alert('当前离线，图片与外部资源可能无法加载'));
+</script>
+</body>
+</html>
