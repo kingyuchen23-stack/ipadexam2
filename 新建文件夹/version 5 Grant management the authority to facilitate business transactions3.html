@@ -9,10 +9,10 @@
   :root{
     --bg1:#f5e8c7;
     --bg2:#8b0000;
-    --card: rgba(107,0,0,.98); /* 深红卡片底，提升对比 */
+    --card: rgba(107,0,0,.98);
     --muted: rgba(245,232,199,.16);
     --text:#ffffff;
-    --brand:#ffe9bf; /* 浅金按钮底 */
+    --brand:#ffe9bf;
     --border:#ffffff;
     --shadow:0 10px 18px rgba(0,0,0,.16);
     --danger:#ffeb3b;
@@ -121,14 +121,26 @@
   .arrow{transition:transform .25s ease}
   details[open] .arrow{transform:rotate(90deg)}
   .note{font-size:13px;opacity:.95;margin:6px 2px 0 2px}
-  /* ===== 图片卡片（A1 指定款） ===== */
+  /* ===== 图片网格（用于 A1 指定款） ===== */
   .grid{display:grid;grid-template-columns:1fr;gap:10px;margin:10px 0}
-  .grid-two-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  @media (max-width:520px){.grid-two-cols{grid-template-columns:1fr}}
-  .grid-item{background:var(--muted);padding:8px;border:1px solid var(--border);border-radius:12px;transition:all .3s ease}
+  /* 改成始终两列，以便 iPhone 一屏能看到两张图 */
+  .grid-two-cols{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0,1fr));
+    gap:10px;
+  }
+  .grid-item{
+    background:var(--muted);padding:8px;border:1px solid var(--border);
+    border-radius:12px;transition:all .3s ease
+  }
   .grid-item:hover{box-shadow:0 4px 8px rgba(255,255,255,.2)}
-  .grid-item img{width:100%;height:auto;border-radius:10px;display:block;max-width:100%;transition:transform .3s ease}
-  .grid-item img:hover{transform:scale(1.05)}
+  .grid-item a{display:block;text-decoration:none}
+  .grid-item img{
+    width:100%;height:auto;border-radius:10px;display:block;max-width:100%;
+    aspect-ratio: 4 / 5;           /* 保持高竖图比例，避免过长 */
+    object-fit:cover;               /* 充满卡片 */
+  }
+  .img-caption{margin-top:6px;font-size:14px;color:#fff;text-align:center;font-weight:900}
   .alert-text{background:yellow;color:#b00000;font-size:clamp(14px,4.6vw,16px);font-weight:900;padding:2px 6px;border-radius:6px}
   .footer-info{margin-top:12px;font-size:clamp(12px,3.8vw,14px);color:#ffe9bf;border-top:1px solid #f5e8c7;padding-top:10px}
   .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
@@ -146,18 +158,15 @@
   #calcOut{margin-top:10px;font-size:clamp(14px,4.2vw,16px)}
   #priceLinkContainer{margin-top:10px;border-top:1px solid #ccc;padding-top:10px;text-align:center}
   #priceLink{font-size:clamp(14px,4.2vw,16px);color:#0b73ff;text-decoration:underline;cursor:pointer}
-  /* ===== 拨号弹层（替代浮动圆钮，避免遮挡） ===== */
-  #callFab{display:none} /* 已移除浮动按钮 */
+  /* ===== 拨号弹层（替代浮动圆钮） ===== */
+  #callFab{display:none}
   #callSheet{display:none;position:fixed;inset:0;background:#0007;z-index:70;align-items:flex-end}
   #callPanel{
     background:#fff;color:#111;width:100%;border-radius:18px 18px 0 0;padding:12px 12px 16px;
     box-shadow:0 -10px 20px rgba(0,0,0,.2)
   }
   #callPanel h4{margin:4px 0 10px;font-weight:900;color:#6b0000;font-size:18px}
-  .callBtn{
-    width:100%;padding:13px 14px;margin:8px 0;border:none;border-radius:12px;font-size:16px;font-weight:900;
-    background:#f2f2f2;color:#111
-  }
+  .callBtn{width:100%;padding:13px 14px;margin:8px 0;border:none;border-radius:12px;font-size:16px;font-weight:900;background:#f2f2f2;color:#111}
   .callBtn.primary{background:#21c55d;color:#fff}
   .callClose{background:transparent;border:1px solid #ccc}
   @supports(padding:max(0px)){#callPanel{padding-bottom:max(16px,env(safe-area-inset-bottom))}}
@@ -327,7 +336,36 @@ const RULES={
         <tr><th class="small">范围</th><td>黄金、铂金、18K金（Au750）等材质的购金与换购业务。</td></tr>
         <tr><th class="small">审批红线</th><td>超出各材质授权区间，或与官方活动叠加导致成交价低于底线的，必须联系管理层并申请批准。</td></tr>
       </table></div>`},
-    /** —— 按换购类型 —— */
+    /** —— A1 专用块：文本 + 指定款两图网格 —— */
+    iceDiamondBlock(){return `
+      <div class="grid">
+        <div class="grid-item">
+          ${RULES.common.setInlayTable()}
+          <div style="margin-top:6px">
+            <strong>冰·钻光影金系列优惠政策</strong><br>
+            1. 单笔交易标价总额≥10,000元，可享 7.5 折。<br>
+            2. 指定款 029591PB / 029591BC 新购可享 7.5 折（单独购买按现行标价）。<br>
+            3. 折扣审批：需经 Kenny / 曾生批准，采用 <span class="alert-text">飞尾</span> 出单，电脑单最低 8 折。
+          </div>
+        </div>
+
+        <!-- ✅ 只在 A1 下显示的图片网格；两列布局，iPhone 也能一次看到两张 -->
+        <div class="grid-two-cols">
+          <div class="grid-item">
+            <a href="https://www.lukfook.com/content/uploads/2025/04/67f5f318c16d1.jpg" target="_blank" rel="noopener">
+              <img loading="lazy" src="https://www.lukfook.com/content/uploads/2025/04/67f5f318c16d1.jpg" alt="冰·钻玫瑰 029591PB">
+              <div class="img-caption">029591PB</div>
+            </a>
+          </div>
+          <div class="grid-item">
+            <a href="https://www.lukfook.com/content/uploads/2025/04/67f5f31a042e1.jpg" target="_blank" rel="noopener">
+              <img loading="lazy" src="https://www.lukfook.com/content/uploads/2025/04/67f5f31a042e1.jpg" alt="冰·钻玫瑰 029591BC">
+              <div class="img-caption">029591BC</div>
+            </a>
+          </div>
+        </div>
+      </div>`},
+    /** —— 换购类型块 —— */
     exchangeBlock(type){
       if(type==='platinum'){return `
         <div class="table-wrap"><table class="pro-table">
@@ -356,7 +394,7 @@ const RULES={
             <caption>黄金换黄金（以卖出价换购）</caption>
             <tr><th class="small">换购比例</th><td>新购黄金重量需 ≥ 旧黄金重量的 1.3 倍；低于 1.3 倍须电话申请审批。</td></tr>
             <tr><th class="small">特殊情形</th><td>极端情况下可按 1:1 等重换货，但仅限 工费 ≥ 200 元/克 且经审批后执行。</td></tr>
-            <tr><th class="small">折扣限制</th><td>上述两种情形（低于 1.3 倍或 1:1 等重）下，不得再给予任何折扣。</td></tr>
+            <tr><th class="small">折扣限制</th><td>上述两种情形下，不得再给予任何折扣。</td></tr>
           </table></div>
         </details>
         <details class="policy" data-policy-id="gold-tradein">
@@ -389,7 +427,6 @@ const RULES={
             <tr><th class="small">适用范围</th><td>适用于所有 J1–J5 货品；按公司当日卖出金价计算。</td></tr>
             <tr><th class="small">折扣授权</th><td>授权上限：85 折；低于 85 折须电话申请审批。</td></tr>
             <tr><th class="small">补差原则</th><td>可换等值货品，无需补差价。</td></tr>
-            <!-- J1 的“≥0.50ct 65折无需审批”已移到 J1 专属页面展示 -->
           </table></div>
         </details>
       `;}
@@ -408,16 +445,6 @@ const RULES={
         <tr><td>原则性规定</td><td>原则上不提供任何折扣。</td></tr>
         <tr><td>例外情况</td><td>如需提供少量折扣，需由店面管理层联系公司领导进行审批。</td></tr>
       </table></div>`},
-    iceDiamondBlock(){return `
-      <div class="grid">
-        <div class="grid-item">${RULES.common.setInlayTable()}</div>
-        <div class="grid-item">
-          <strong>冰·钻光影金系列优惠政策</strong><br>
-          1. 单笔交易标价总额≥10,000元，可享 7.5 折。<br>
-          2. 指定款 029591PB / 029591BC 新购可享 7.5 折（单独购买按现行标价）。<br>
-          3. 折扣审批：需经 Kenny / 曾生批准，采用 <span class="alert-text">飞尾</span> 出单，电脑单最低 8 折。
-        </div>
-      </div>`},
     footer(){return `
       <div class="footer-info">
         <strong>操作与政策指引</strong><br>
@@ -495,11 +522,11 @@ confirmProduct.addEventListener('click',()=>{
     html+=RULES.common.buyExchangeIntro();
     html+=RULES.common.exchangeBlock(exchangeType.value)
   }else if(product==='A1'){
+    /* ✅ A1：显示文本 + 指定款图片网格（两列，iPhone 也能一次看完） */
     html+=RULES.common.iceDiamondBlock()
   }else if(['T1','J2','J3','J4','J5','J6'].includes(product)){
     html+=RULES.common.setInlayTable()
   }else if(product==='J1'){
-    /* J1：通用镶嵌授权 + J1 专属特例（≥0.50ct 65折无需审批） */
     html+=RULES.common.setInlayTable();
     html+=RULES.common.j1Special();
   }else if(['S1','E1'].includes(product)){
@@ -589,7 +616,7 @@ calcDo.addEventListener('click',()=>{
   calcOut.innerHTML=html
 });
 
-/** URL 直达参数：?store=mall&prod=购金及换货&ex=gold&gp=gold-tradein */
+/** URL 直达参数 */
 (function autoFromURL(){
   const q=new URLSearchParams(location.search);const s=q.get('store');const p=q.get('prod');const ex=q.get('ex');const gp=q.get('gp');
   if(s&&(s==='mall'||s==='nonMall')){
