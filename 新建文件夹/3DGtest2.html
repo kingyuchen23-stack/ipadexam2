@@ -3,8 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
-<title>金至尊｜门店销售逻辑测试 3DG</title>
-<link rel="preconnect" href="https://www.3dg-group.com" crossorigin>
+<title>门店销售逻辑测试 | Store Sales Logic Quiz</title>
 <style>
   :root{
     --bg:#fffdf7; --bg2:#fff7e8; --text:#222; --muted:#5e6266;
@@ -35,7 +34,6 @@
     padding:18px;
   }
   header{display:flex;align-items:center;gap:12px;margin-bottom:8px}
-  header img{height:36px}
   header h1{font-size:20px;margin:0;color:var(--brand)}
   p{margin:8px 0;font-size:var(--fz-body);color:var(--muted)}
   .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
@@ -55,10 +53,16 @@
   .progress>div{height:100%;background:linear-gradient(90deg,#ffd98a,#d6b55b);width:0%}
   .q-title{font-size:var(--fz-title);margin:6px 0 4px;color:#2a1b06}
   .q-sub{font-size:var(--fz-title);margin:0 0 12px;color:#2a1b06}
-  .opt{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff}
-  .opt input{width:22px;height:22px}
-  .opt-label{flex:1;font-size:var(--fz-option);line-height:1.35}
   .grid{display:grid;gap:10px}
+
+  /* 选项 UI 升级 */
+  .opt{display:flex;align-items:flex-start;gap:12px;padding:14px;border:1px solid var(--line);border-radius:14px;background:#fff;transition:.15s}
+  .opt:hover{box-shadow:0 4px 12px rgba(140,110,40,.08)}
+  .opt.selected{border-color:#d6b55b;background:#fffaf0;box-shadow:inset 0 0 0 2px #f1d58a}
+  .opt input{width:22px;height:22px;margin-top:2px}
+  .badge{width:28px;height:28px;border-radius:999px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:800;color:#6b4a1b;background:#fff8e4;flex:0 0 28px}
+  .opt-label{flex:1;font-size:var(--fz-option);line-height:1.35}
+
   .nav{display:flex;gap:10px;margin-top:12px}
   .ttsbar{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap}
   .ttsbar .btn{flex:1}
@@ -80,8 +84,7 @@
     <!-- Screen 1: 填姓名 + 难度 -->
     <div id="screen-start" class="card">
       <header>
-        <img src="https://www.3dg-group.com/images/Navi_logo.png" alt="3DG 金至尊">
-        <h1>金至尊｜门店销售逻辑测试<br><span style="font-size:14px;color:#8a5b27">Store Sales Logic Quiz · แบบทดสอบตรรกะการขาย</span></h1>
+        <h1>门店销售逻辑测试<br><span style="font-size:14px;color:#8a5b27">Store Sales Logic Quiz · แบบทดสอบตรรกะการขาย</span></h1>
       </header>
       <p>请填写姓名并选择难度。<br>Enter your name and choose a level.<br>โปรดกรอกชื่อและเลือกระดับข้อสอบ</p>
       <div class="row">
@@ -136,7 +139,6 @@
     <!-- Screen 3: 成绩 -->
     <div id="screen-result" class="card" style="display:none">
       <header style="margin-bottom:4px">
-        <img src="https://www.3dg-group.com/images/Navi_logo.png" alt="3DG 金至尊">
         <h1>成绩 / Result / ผลคะแนน</h1>
       </header>
       <div class="row">
@@ -164,7 +166,7 @@
 
       <div class="nav">
         <button class="btn link" id="copyKey">复制学习版答案 / Copy Study Key / คัดลอกเฉลย</button>
-        <button class="btn link" id="againSame">再测一次（同难度）/ Retake Same Level / ทำใหม่ระดับเดิม</button>
+        <button class="btn link" id="againSame">再测一次（同难度） / Retake Same Level / ทำใหม่ระดับเดิม</button>
         <button class="btn pass" id="againStart">返回开始 / Back to Start / กลับหน้าแรก</button>
       </div>
     </div>
@@ -172,30 +174,24 @@
 
 <script>
 /* ===================== 配置区（倒计时时长，单位：秒） ===================== */
-/* 你可以把 20*60 / 40*60 / 60*60 改成你需要的秒数 */
-const DURATIONS = {
-  entry: 20*60,   // 入门 20 分钟
-  normal: 40*60,  // 常规 40 分钟
-  hard: 60*60     // 高阶 60 分钟
-};
+const DURATIONS = { entry:20*60, normal:40*60, hard:60*60 };
 
-/* ===================== 小工具 ===================== */
+/* ===================== 小工具（修复 checked 造成的误选） ===================== */
 const $ = s=>document.querySelector(s);
-const el = (tag, attrs={}, children=[])=>{
+function el(tag, attrs={}, children=[]){
   const node = document.createElement(tag);
-  Object.entries(attrs).forEach(([k,v])=>{
+  for (const [k,v] of Object.entries(attrs)){
+    if(v===null || v===undefined || v===false) continue; // 关键：忽略空值，避免生成 checked="null"
     if(k==='class') node.className=v;
     else if(k==='html') node.innerHTML=v;
+    else if(k==='text') node.textContent=v;
+    else if(k==='checked'){ node.checked = !!v; } // 用属性而非 setAttribute
     else node.setAttribute(k,v);
-  });
+  }
   children.forEach(c=> node.appendChild(c));
   return node;
-};
-const shuffle = (arr)=>{
-  const a=arr.slice();
-  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
-  return a;
-};
+}
+const shuffle = (arr)=>{ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
 const pad = n => String(n).padStart(2,'0');
 
 /* ===================== 题库（20题；中/英/泰） ===================== */
@@ -355,110 +351,6 @@ const BANK_ALL = [
     exp_zh:"稳定预期与信任基线，强化可靠性与选择理由。",
     exp_en:"Sets trust baselines and strengthens reasons to choose you.",
     exp_th:"วางฐานความเชื่อใจและเหตุผลในการเลือกแบรนด์ของคุณ"
-  },
-  { zh:"为什么在介绍爆品区时要使用“TOP 10榜单”的表达方式？",
-    en:"Why should salespeople present the bestseller zone using a “TOP 10 ranking” format?",
-    th:"ทำไมการนำเสนอ ‘โซนขายดี’ ควรใช้รูปแบบ ‘TOP 10’?",
-    options:[
-      {zh:"因为客户更容易理解“最畅销”的概念", en:"Because customers easily understand the idea of “bestsellers”", th:"เพราะลูกค้าเข้าใจแนวคิด ‘ขายดีที่สุด’ ได้ง่าย", correct:true},
-      {zh:"因为可以减少选择项", en:"Because it limits choices", th:"เพราะลดตัวเลือก"},
-      {zh:"因为这样显得店面规模大", en:"Because it shows store size", th:"เพราะแสดงขนาดร้าน"},
-      {zh:"因为这样避免介绍其他柜台", en:"Because it avoids introducing other counters", th:"เพราะเลี่ยงการพาไปตู้อื่น"}
-    ],
-    exp_zh:"社会证明+明确排序，降低选择成本，提升信心。",
-    exp_en:"Social proof and clear ranking reduce choice overload and build confidence.",
-    exp_th:"หลักฐานทางสังคม+การจัดอันดับชัดเจน ลดภาระการเลือกและเพิ่มความมั่นใจ"
-  },
-  { zh:"为什么要在客户需求出现之前，主动引导他们？",
-    en:"Why should salespeople guide customers before their needs are clearly stated?",
-    th:"ทำไมควรชี้นำลูกค้าก่อนที่ความต้องการจะชัดเจน?",
-    options:[
-      {zh:"因为客户常常不表达真实需求", en:"Because customers often don’t express real needs", th:"เพราะลูกค้ามักไม่พูดความต้องการจริง", correct:true},
-      {zh:"因为这样能减少销售员工作", en:"Because it reduces workload", th:"เพราะลดงาน"},
-      {zh:"因为客户喜欢被直接推销", en:"Because customers like direct selling", th:"เพราะลูกค้าชอบการขายตรง"},
-      {zh:"因为这样避免客户比较价格", en:"Because it avoids price comparison", th:"เพราะเลี่ยงการเทียบราคา"}
-    ],
-    exp_zh:"用结构化路径帮助客户从模糊到清晰，降低决策焦虑。",
-    exp_en:"Structured guidance helps customers move from fuzzy to clear with less anxiety.",
-    exp_th:"โครงทางที่ชัดเจนช่วยพาลูกค้าจากความคลุมเครือไปสู่ความชัดเจน ลดความกังวลในการตัดสินใจ"
-  },
-  { zh:"当客户说“不了解品牌”时，销售员应该如何回应？",
-    en:"How should a salesperson respond if a customer says they don’t know the brand?",
-    th:"เมื่อลูกค้าบอกว่า ‘ยังไม่รู้จักแบรนด์’ ควรตอบอย่างไร?",
-    options:[
-      {zh:"停止讲解，转到价格", en:"Stop talking and switch to pricing", th:"หยุดพูดแล้วไปที่ราคา"},
-      {zh:"主动介绍品牌优势和历史", en:"Actively introduce brand strengths and history", th:"แนะนำจุดแข็งและประวัติของแบรนด์อย่างกระตือรือร้น", correct:true},
-      {zh:"马上提供折扣", en:"Offer discounts immediately", th:"ให้ส่วนลดทันที"},
-      {zh:"避免继续对话", en:"Avoid further conversation", th:"หลีกเลี่ยงการสนทนาต่อ"}
-    ],
-    exp_zh:"先补齐认知基础，再进行方案与选择的讨论。",
-    exp_en:"First bridge knowledge gaps, then discuss solutions and choices.",
-    exp_th:"เติมพื้นฐานความรู้ก่อน แล้วจึงคุยทางเลือกและข้อเสนอ"
-  },
-  { zh:"“种草”的逻辑关键在于什么？",
-    en:"What is the key logic behind “seeding” products?",
-    th:"หัวใจของตรรกะ ‘การปูพรมความสนใจ (seeding)’ คืออะไร?",
-    options:[
-      {zh:"通过反复强调，让客户潜意识形成兴趣", en:"Repeated emphasis to create subconscious interest", th:"การย้ำอย่างต่อเนื่องให้เกิดความสนใจในระดับใต้สำนึก", correct:true},
-      {zh:"给客户制造购买压力", en:"Creating buying pressure for the customer", th:"สร้างแรงกดดันให้ซื้อ"},
-      {zh:"强调库存紧张", en:"Stressing limited stock", th:"เน้นว่าสินค้ามีน้อย"},
-      {zh:"只在客户离开前使用", en:"Only using it before customers leave", th:"ใช้เฉพาะก่อนลูกค้าออกจากร้าน"}
-    ],
-    exp_zh:"“看见—记住—喜欢”的层层递进，而非强压成交。",
-    exp_en:"From exposure to memory to liking; not about pressure but priming.",
-    exp_th:"ไล่ลำดับจาก ‘เห็น—จำ—ชอบ’ ไม่ใช่การกดดันให้ซื้อ"
-  },
-  { zh:"在客户浏览时，为什么要引导而不是被动等待？",
-    en:"Why should salespeople guide customers instead of waiting passively during browsing?",
-    th:"ทำไมขณะลูกค้าเดินดูควร ‘นำทาง’ แทนการรอแบบเฉยๆ?",
-    options:[
-      {zh:"因为客户会觉得更有安全感", en:"Because customers feel safer", th:"เพราะลูกค้ารู้สึกปลอดภัยกว่า"},
-      {zh:"因为可以控制客户的节奏和注意力", en:"Because it helps control customer pace and focus", th:"เพราะควบคุมจังหวะและสมาธิของลูกค้าได้", correct:true},
-      {zh:"因为这样显得更有气势", en:"Because it looks more confident", th:"เพราะดูมั่นใจ"},
-      {zh:"因为客户喜欢被跟随", en:"Because customers like being followed", th:"เพราะลูกค้าชอบให้เดินตาม"}
-    ],
-    exp_zh:"引导是对路径与注意力的设计，避免无效游逛。",
-    exp_en:"Guidance designs the path and attention, avoiding meandering.",
-    exp_th:"การนำทางคือการออกแบบเส้นทางและจุดสนใจ เพื่อลดการเดินแบบไร้ทิศทาง"
-  },
-  { zh:"在销售过程中，为什么要避免一次性展示过多柜台？",
-    en:"Why should salespeople avoid showing too many counters at once?",
-    th:"ทำไมไม่ควรพาชมหลายตู้พร้อมกันในคราวเดียว?",
-    options:[
-      {zh:"因为客户容易失去焦点和兴趣", en:"Because customers may lose focus and interest", th:"เพราะลูกค้าเสียสมาธิและความสนใจได้ง่าย", correct:true},
-      {zh:"因为柜台货品价值不一样", en:"Because products in counters have different values", th:"เพราะสินค้ามีมูลค่าไม่เท่ากัน"},
-      {zh:"因为这样减少对话时间", en:"Because it shortens the conversation", th:"เพราะทำให้เวลาคุยสั้นลง"},
-      {zh:"因为客户不喜欢逛店", en:"Because customers dislike browsing", th:"เพราะลูกค้าไม่ชอบเดินดู"}
-    ],
-    exp_zh:"减少选择过载，维持清晰路径与节奏控制。",
-    exp_en:"Prevents choice overload and preserves a clear, controlled flow.",
-    exp_th:"หลีกเลี่ยงภาวะ ‘ตัวเลือกล้น’ รักษาเส้นทางและจังหวะที่คุมได้"
-  },
-  { zh:"“逻辑衔接”在销售话术中最大的意义是什么？",
-    en:"What is the greatest significance of “logical transitions” in sales communication?",
-    th:"ความหมายสำคัญที่สุดของ ‘ช่วงเชื่อมตรรกะ’ ในบทสนทนาการขายคืออะไร?",
-    options:[
-      {zh:"让客户觉得销售员专业且有计划", en:"To make customers feel the salesperson is professional and organized", th:"ทำให้ลูกค้ารู้สึกว่าพนักงานมืออาชีพและมีแผน", correct:true},
-      {zh:"增加与客户的闲聊", en:"To increase small talk with the customer", th:"เพื่อคุยเล่นให้มากขึ้น"},
-      {zh:"避免客户提出异议", en:"To avoid objections from the customer", th:"เพื่อเลี่ยงข้อโต้แย้ง"},
-      {zh:"让销售员记台词更容易", en:"To make scripts easier to memorize", th:"เพื่อให้จำสคริปต์ง่ายขึ้น"}
-    ],
-    exp_zh:"让路径可预期、信息有序，增强专业可信度。",
-    exp_en:"Predictable path and ordered info enhance perceived professionalism.",
-    exp_th:"ทำให้เส้นทางคาดเดาได้ ข้อมูลเป็นระบบ เพิ่มความน่าเชื่อถือแบบมืออาชีพ"
-  },
-  { zh:"为什么门店要定期调整陈列布局？",
-    en:"Why should stores regularly adjust product displays?",
-    th:"ทำไมร้านค้าควรปรับผัง/จัดวางสินค้าเป็นประจำ?",
-    options:[
-      {zh:"因为客户对新陈列更敏感，更容易被吸引", en:"Because customers are more sensitive to new displays and more likely to be attracted", th:"เพราะลูกค้าไวต่อการจัดวางใหม่และถูกดึงดูดง่ายขึ้น", correct:true},
-      {zh:"因为可以增加销售员的工作量", en:"Because it increases salesperson’s workload", th:"เพราะเพิ่มงานพนักงาน"},
-      {zh:"因为这样方便清点库存", en:"Because it makes inventory counting easier", th:"เพราะสะดวกในการนับสต็อก"},
-      {zh:"因为所有店都这么做", en:"Because all stores do it", th:"เพราะทุกคนทำกัน"}
-    ],
-    exp_zh:"新鲜感提升注意力与停留时长，促进转化。",
-    exp_en:"Novelty captures attention and time on display, aiding conversion.",
-    exp_th:"ความแปลกใหม่ช่วยดึงความสนใจและเวลาหยุดชม ส่งผลดีต่อการตัดสินใจซื้อ"
   }
 ];
 
@@ -524,9 +416,10 @@ function stopReading(){
 let timerInterval = null;
 let timerDeadline = 0;
 function startTimerForLevel(level){
-  const secs = DURATIONS[level] || 20*60;
+  const map={entry:20*60,normal:40*60,hard:60*60};
+  const secs = map[level] || 20*60;
   timerDeadline = Date.now() + secs*1000;
-  updateTimer(); // 立刻刷新一次
+  updateTimer();
   if(timerInterval) clearInterval(timerInterval);
   timerInterval = setInterval(updateTimer, 1000);
 }
@@ -543,9 +436,7 @@ function updateTimer(){
     if($('#screen-quiz').style.display!=='none'){ finishQuiz(); }
   }
 }
-function stopTimer(){
-  if(timerInterval){ clearInterval(timerInterval); timerInterval = null; }
-}
+function stopTimer(){ if(timerInterval){ clearInterval(timerInterval); timerInterval=null; } }
 
 /* ===================== 事件绑定 ===================== */
 document.querySelectorAll('#screen-start .seg[aria-label="Level"] button').forEach(btn=>{
@@ -560,7 +451,6 @@ $('#startBtn').addEventListener('click', ()=>{
   if(!name){ $('#startBtn').classList.add('danger'); setTimeout(()=>$('#startBtn').classList.remove('danger'),600); $('#nameInput').focus(); return; }
   state.name = name; startQuiz();
 });
-
 $('#prevBtn').addEventListener('click', ()=>{ if(state.pos>0){ stopReading(); state.pos--; renderQuestion(); } });
 $('#nextBtn').addEventListener('click', ()=>{
   if(state.pos < state.chosen.length-1){ stopReading(); state.pos++; renderQuestion(); }
@@ -594,7 +484,6 @@ function getBank(){
 }
 function startQuiz(){
   const base = getBank();
-  // 题序随机；选项随机；正确项固定
   state.chosen = shuffle(base).map(q=>{
     const opts = shuffle(q.options.map(o=>({...o})));
     const correctIndex = opts.findIndex(o=>o.correct===true);
@@ -609,9 +498,7 @@ function startQuiz(){
   $('#pillName').textContent = `姓名/Name/ชื่อ：${state.name}`;
   $('#pillLevel').textContent = `难度/Level/ระดับ：${LEVEL_TEXT[state.level]}`;
 
-  // 启动倒计时
   startTimerForLevel(state.level);
-
   renderQuestion();
 }
 function renderQuestion(){
@@ -624,20 +511,25 @@ function renderQuestion(){
   optBox.innerHTML='';
   q.options.forEach((opt, idx)=>{
     const id = `q${state.pos}_opt${idx}`;
-    const checked = state.answers[state.pos] === idx;
-    const row = el('label', {class:'opt', for:id}, [
-      el('input', {type:'radio', name:'opt', id, 'data-idx':idx, checked: checked? 'checked': null}),
-      el('div', {class:'opt-label', html:`<strong>${String.fromCharCode(65+idx)}.</strong> ${opt.zh}<br>${opt.en}<br>${opt.th}`})
+    const isChecked = state.answers[state.pos] === idx;
+    const row = el('label', {class:`opt${isChecked?' selected':''}`, for:id}, [
+      el('input', {type:'radio', name:'opt', id, 'data-idx':idx, checked:isChecked}),
+      el('div', {class:'badge', text:String.fromCharCode(65+idx)}),
+      el('div', {class:'opt-label', html:`${opt.zh}<br>${opt.en}<br>${opt.th}`})
     ]);
     optBox.appendChild(row);
   });
   optBox.querySelectorAll('input[type=radio]').forEach(r=>{
     r.addEventListener('change', ()=>{
       state.answers[state.pos] = parseInt(r.dataset.idx,10);
+      // 高亮所选
+      optBox.querySelectorAll('.opt').forEach(x=>x.classList.remove('selected'));
+      r.closest('.opt')?.classList.add('selected');
       $('#nextBtn').disabled = false;
     });
   });
 
+  // 恢复“已作答”状态时，允许直接 Next
   $('#nextBtn').disabled = (state.answers[state.pos] == null);
   $('#nextBtn').textContent = (state.pos === state.chosen.length-1) ? '提交 / Submit / ส่งคำตอบ' : '下一题 / Next / ข้อต่อไป';
   $('#prevBtn').disabled = (state.pos === 0);
@@ -654,8 +546,8 @@ function finishQuiz(){
     const chosenIdx = state.answers[i];
     const ok = (chosenIdx === q.correctIndex);
     if(ok) correct++;
-    const your = chosenIdx!=null ? fmtOpt(q.options[chosenIdx]) : '<span class="bad">未作答 / No answer / ไม่ได้ตอบ</span>';
-    const corr = fmtOpt(q.options[q.correctIndex]);
+    const your = chosenIdx!=null ? fmtOpt(q.options[chosenIdx], chosenIdx) : '<span class="bad">未作答 / No answer / ไม่ได้ตอบ</span>';
+    const corr = fmtOpt(q.options[q.correctIndex], q.correctIndex);
     const exp  = `${q.exp_zh}<br>${q.exp_en}<br>${q.exp_th}`;
     rows.push({ no:i+1, title:`${q.zh}<br>${q.en}<br>${q.th}`, your, corr, exp, ok });
   });
@@ -691,15 +583,27 @@ function finishQuiz(){
 
   window.scrollTo({top:0, behavior:'smooth'});
 
-  function fmtOpt(opt){ return `${opt.zh}<br>${opt.en}<br>${opt.th}`; }
+  function fmtOpt(opt, idx){
+    const letter = idx!=null ? `(${String.fromCharCode(65+idx)}) ` : '';
+    return `${letter}${opt.zh}<br>${opt.en}<br>${opt.th}`;
+  }
 }
 
-/* 学习版答案（可复制） */
+/* 学习版答案（更清晰的复制格式） */
 function buildStudyKey(chosen){
-  let out = `【学习版答案 Study Key กุญแจเฉลย】\n姓名/Name/ชื่อ: ${state.name}\n难度/Level/ระดับ: ${LEVEL_TEXT[state.level]}\n\n`;
+  const now = new Date();
+  let out = `===== 学习版答案 | Study Key | กุญแจเฉลย =====\n`;
+  out += `姓名/Name/ชื่อ: ${state.name}\n难度/Level/ระดับ: ${LEVEL_TEXT[state.level]}\n日期/Date: ${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}\n`;
+  out += `--------------------------------------------------\n`;
   chosen.forEach((q,i)=>{
-    const cor = q.options[q.correctIndex];
-    out += `Q${i+1}.\n${q.zh}\n${q.en}\n${q.th}\n> 正确/Correct/คำตอบที่ถูก: ${cor.zh} | ${cor.en} | ${cor.th}\n> 解析/Explanation/คำอธิบาย: ${q.exp_zh} | ${q.exp_en} | ${q.exp_th}\n\n`;
+    const corIdx = q.correctIndex;
+    const cor = q.options[corIdx];
+    const L = String.fromCharCode(65+corIdx);
+    out += `Q${i+1}\n`;
+    out += `CN: ${q.zh}\nEN: ${q.en}\nTH: ${q.th}\n`;
+    out += `Correct ${L}: ${cor.zh} | ${cor.en} | ${cor.th}\n`;
+    out += `Explain: ${q.exp_zh} | ${q.exp_en} | ${q.exp_th}\n`;
+    out += `--------------------------------------------------\n`;
   });
   return out;
 }
