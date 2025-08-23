@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+<title>金至尊｜门店销售逻辑测试 3DG</title>
+<link rel="preconnect" href="https://www.3dg-group.com" crossorigin>
+<style>
+  :root{
+    --bg:#fffdf7; --bg2:#fff7e8; --text:#222; --muted:#5e6266;
+    --brand:#7c4f1d; --gold:#d6b55b; --gold-soft:#fff1c6; --line:#eadfbc;
+    --ok:#18a957; --bad:#e64646; --radius:16px; --shadow:0 10px 22px rgba(140,110,40,.15);
+    --fz-title:18px; --fz-option:16px; --fz-body:15px; --fz-small:13px;
+  }
+  @media (min-width:480px){
+    :root{ --fz-title:20px; --fz-option:17px; --fz-body:16px; --fz-small:14px; }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(1200px 600px at 100% -100px, #ffe7b3 0%, transparent 60%),
+      radial-gradient(1000px 500px at -200px 100%, #fff3cc 0%, transparent 55%),
+      var(--bg);
+  }
+  .wrap{max-width:820px;margin:0 auto;padding:18px env(safe-area-inset-right) calc(18px + env(safe-area-inset-bottom)) env(safe-area-inset-left)}
+  .card{
+    background:linear-gradient(180deg,#fffef9 0%, var(--bg2) 100%);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:18px;
+  }
+  header{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+  header img{height:36px}
+  header h1{font-size:20px;margin:0;color:var(--brand)}
+  p{margin:8px 0;font-size:var(--fz-body);color:var(--muted)}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  input[type="text"]{width:100%;padding:14px 16px;border-radius:12px;border:1px solid var(--line);background:#fff;color:var(--text);font-size:16px}
+  .seg{display:flex;background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px;gap:4px}
+  .seg button{flex:1;border:0;border-radius:999px;padding:10px 12px;background:transparent;color:var(--brand);font-weight:700}
+  .seg button.active{background:var(--gold-soft);color:#7a501f}
+  .btn{width:100%;padding:14px 16px;border-radius:12px;border:1px solid var(--line);background:linear-gradient(#e7c879,#d4b159);color:#3a2a12;font-weight:800;font-size:16px}
+  .btn:active{transform:translateY(1px)}
+  .btn.alt{background:linear-gradient(#ffffff,#fff5db)}
+  .btn.link{background:#fff;border-style:dashed}
+  .btn.pass{background:linear-gradient(#2ad07a,#18a957);color:#fff;border-color:#18a957}
+  .btn.danger{background:linear-gradient(#ffb1a8,#ff8b7d);color:#5a0e0e;border-color:#ff8b7d}
+  .kpi{display:flex;gap:8px;flex-wrap:wrap}
+  .pill{padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:#fff; color:#6b4a1b;font-weight:700;font-size:var(--fz-small)}
+  .progress{height:10px;background:#fff;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+  .progress>div{height:100%;background:linear-gradient(90deg,#ffd98a,#d6b55b);width:0%}
+  .q-title{font-size:var(--fz-title);margin:6px 0 4px;color:#2a1b06}
+  .q-sub{font-size:var(--fz-title);margin:0 0 12px;color:#2a1b06}
+  .opt{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff}
+  .opt input{width:22px;height:22px}
+  .opt-label{flex:1;font-size:var(--fz-option);line-height:1.35}
+  .grid{display:grid;gap:10px}
+  .nav{display:flex;gap:10px;margin-top:12px}
+  .ttsbar{display:flex;gap:10px;margin-top:8px}
+  table{width:100%;border-collapse:separate;border-spacing:0;margin-top:10px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+  th,td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top;font-size:var(--fz-body)}
+  th{background:#fff8e4;color:#6b4a1b;text-align:left}
+  tr:last-child td{border-bottom:0}
+  .ok{color:var(--ok);font-weight:700}
+  .bad{color:var(--bad);font-weight:700}
+  .tag{display:inline-block;border:1px solid #c3e9d5;background:#eefcf5;color:#0d7b45;padding:2px 8px;border-radius:999px;font-size:var(--fz-small)}
+  .topbar{position:sticky;top:0;z-index:10;background:linear-gradient(180deg,#fffdf2 0%, rgba(255,251,235,.85) 100%);padding:8px 0 12px;margin:-8px 0 12px;backdrop-filter: blur(6px)}
+  .hint{font-size:var(--fz-small);color:#7a7a7a}
+  .video-wrap{position:relative;width:100%;aspect-ratio:16/9;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+  .video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+</style>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- Screen 0: 视频导入页 -->
+    <div id="screen-video" class="card">
+      <header>
+        <img src="https://www.3dg-group.com/images/Navi_logo.png" alt="3DG 金至尊">
+        <h1>金至尊｜销售流程培训视频<br><span style="font-size:14px;color:#8a5b27">Training Video (Optional)</span></h1>
+      </header>
+      <p>建议先观看培训视频，了解本次测试涉及的核心流程要点。可随时播放/暂停；若暂时不看，直接进入下一页开始测试。</p>
+      <div class="video-wrap" aria-label="Training Video">
+        <!-- 使用 /preview，原生播放/暂停控件 -->
+        <iframe src="https://drive.google.com/file/d/1Zrs_kZmK9N0RkrVMoEIuOlWm226JdqWM/preview" allow="autoplay; fullscreen" allowfullscreen></iframe>
+      </div>
+      <div class="nav">
+        <button class="btn" id="btnGoStart">下一页 · 开始测试 / Next</button>
+      </div>
+    </div>
+
+    <!-- Screen 1: 填姓名与难度 -->
+    <div id="screen-start" class="card" style="display:none">
+      <header>
+        <img src="https://www.3dg-group.com/images/Navi_logo.png" alt="3DG 金至尊">
+        <h1>金至尊｜门店销售逻辑测试<br><span style="font-size:14px;color:#8a5b27">Store Sales Logic Quiz</span></h1>
+      </header>
+      <p>填写姓名并选择难度。</p>
+      <div class="row">
+        <input id="nameInput" type="text" placeholder="姓名 / Name" autocomplete="name" />
+      </div>
+      <div style="height:10px"></div>
+      <h2 style="margin:0 0 6px;color:#7a501f;font-size:17px">难度 / Level</h2>
+      <div class="seg" role="tablist" aria-label="Level">
+        <button type="button" class="active" data-level="entry">Entry · 5题</button>
+        <button type="button" data-level="normal">Normal · 10题</button>
+        <button type="button" data-level="hard">Hard · 20题</button>
+      </div>
+      <div style="height:12px"></div>
+      <button id="startBtn" class="btn">开始考试 / Start Quiz</button>
+      <p class="hint">通过标准：正确率 ≥ 80% 即通过。</p>
+    </div>
+
+    <!-- Screen 2: 答题 -->
+    <div id="screen-quiz" class="card" style="display:none">
+      <div class="topbar">
+        <div class="kpi">
+          <div class="pill" id="pillName">姓名：</div>
+          <div class="pill" id="pillLevel">难度：</div>
+          <div class="pill" id="pillCount">题目：0/0</div>
+        </div>
+        <div style="height:8px"></div>
+        <div class="progress"><div id="progressBar"></div></div>
+      </div>
+
+      <div id="qBox">
+        <div class="q-title" id="qTitle">题干（中文）</div>
+        <div class="q-sub" id="qSub">Question (English)</div>
+        <div id="optBox" class="grid"></div>
+
+        <div class="ttsbar">
+          <button class="btn alt" id="btnRead">朗读当前题 / Read</button>
+          <button class="btn link" id="btnStop">停止朗读 / Stop</button>
+        </div>
+        <p class="hint">朗读依次播放中文题干→英文题干→A-D 选项（中英）。可随时开始或停止。</p>
+      </div>
+
+      <div class="nav">
+        <button class="btn alt" id="prevBtn">上一题 / Prev</button>
+        <button class="btn" id="nextBtn" disabled>下一题 / Next</button>
+      </div>
+    </div>
+
+    <!-- Screen 3: 成绩 -->
+    <div id="screen-result" class="card" style="display:none">
+      <header style="margin-bottom:4px">
+        <img src="https://www.3dg-group.com/images/Navi_logo.png" alt="3DG 金至尊">
+        <h1>成绩 / Result</h1>
+      </header>
+      <div class="row">
+        <div class="pill" id="rName"></div>
+        <div class="pill" id="rLevel"></div>
+        <div class="pill" id="rScore"></div>
+        <div class="pill" id="rPass"></div>
+      </div>
+      <p id="passNote" style="margin-top:8px;"></p>
+
+      <h2 style="color:#7a501f;font-size:18px">答题明细 / Answer Review</h2>
+      <table id="resultTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>题目（中/英）</th>
+            <th>你的答案<br/>Your Answer</th>
+            <th>正确答案<br/>Correct</th>
+            <th>解析（中/英）<br/>Explanation</th>
+            <th>结果<br/>Result</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div class="nav">
+        <button class="btn link" id="copyKey">复制学习版答案 / Copy Study Key</button>
+        <button class="btn link" id="againSame">再测一次（同难度）/ Retake Same Level</button>
+        <button class="btn pass" id="againStart">返回开始 / Back to Start</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ===== 小工具 ===== */
+const $ = s=>document.querySelector(s);
+const el = (tag, attrs={}, children=[])=>{
+  const node = document.createElement(tag);
+  Object.entries(attrs).forEach(([k,v])=>{
+    if(k==='class') node.className=v;
+    else if(k==='html') node.innerHTML=v;
+    else node.setAttribute(k,v);
+  });
+  children.forEach(c=> node.appendChild(c));
+  return node;
+};
+const shuffle = (arr)=>{
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+};
+
+/* ===== 题库（20题，正确项固定；题序与选项每次随机） ===== */
+const BANK_ALL = [
+  { zh:"为什么不能在客户刚进店时就直接进入成交环节？",
+    en:"Why should salespeople avoid jumping directly to the closing stage when customers enter the store?",
+    options:[
+      {zh:"因为这样显得不礼貌", en:"Because it seems impolite"},
+      {zh:"因为大多数客户进店没有明确目的，需要先建立链接", en:"Because most customers enter without a clear purpose and need connection first", correct:true},
+      {zh:"因为这样会浪费时间", en:"Because it wastes time"},
+      {zh:"因为客户喜欢先看折扣", en:"Because customers prefer discounts first"}
+    ],
+    exp_zh:"多数来访者处于探索状态，需先建立链接和信任，再进入需求挖掘与推进。",
+    exp_en:"Most entrants are browsing; build rapport and context before need discovery and closing."
+  },
+  { zh:"销售流程中的第一步逻辑应该是什么？",
+    en:"What should be the first logical step in the sales process?",
+    options:[
+      {zh:"直接介绍爆品", en:"Directly introduce bestsellers"},
+      {zh:"建立联系并进入破冰环节", en:"Build connection and start with ice-breaking", correct:true},
+      {zh:"给客户讲解价格体系", en:"Explain pricing system"},
+      {zh:"带客户随便逛店", en:"Let the customer wander around"}
+    ],
+    exp_zh:"破冰是承上启下的衔接点，降低戒备、建立信任。",
+    exp_en:"Ice-breaking connects stages, reduces friction, and builds trust."
+  },
+  { zh:"品牌宣导在销售逻辑中起到什么作用？",
+    en:"What role does brand storytelling play in the sales logic?",
+    options:[
+      {zh:"用于打发时间", en:"To kill time"},
+      {zh:"增强差异化，避免客户只关注比价", en:"Strengthen differentiation and prevent price-only comparison", correct:true},
+      {zh:"让客户立即付款", en:"To make customers pay immediately"},
+      {zh:"替代产品介绍", en:"To replace product introduction"}
+    ],
+    exp_zh:"差异化叙事让客户采用非价格标准评估你，从而避免比价陷阱。",
+    exp_en:"Differentiation reframes evaluation criteria beyond price and avoids price wars."
+  },
+  { zh:"如果客户说“只是随便看看”，销售应如何逻辑推进？",
+    en:"If a customer says “I am just browsing,” how should the salesperson logically proceed?",
+    options:[
+      {zh:"停止接待", en:"Stop serving"},
+      {zh:"强行推销黄金", en:"Push gold products directly"},
+      {zh:"引导客户到新品或特色区域", en:"Guide the customer to new arrivals or special sections", correct:true},
+      {zh:"马上给折扣", en:"Offer discounts immediately"}
+    ],
+    exp_zh:"用场景与专区引导兴趣与注意力，再逐步挖掘需求。",
+    exp_en:"Use curated areas to focus attention first, then discover needs."
+  },
+  { zh:"为什么门店需要设立“爆品区”？",
+    en:"Why should the store set up a “bestseller zone”?",
+    options:[
+      {zh:"为了清理库存", en:"To clear old stock"},
+      {zh:"让客户快速聚焦畅销款，提高转化效率", en:"To quickly focus customers on popular items and improve conversion", correct:true},
+      {zh:"因为店面需要装饰", en:"Because the store needs decoration"},
+      {zh:"为了减少销售员介绍产品的工作量", en:"To reduce salesperson’s workload"}
+    ],
+    exp_zh:"缩短选择路径，降低决策成本，形成“先易后难”的推进。",
+    exp_en:"Shortens decision path and reduces cognitive load, improving conversion."
+  },
+  { zh:"在销售逻辑中，“种草”的核心意义是什么？",
+    en:"What is the core meaning of “seeding” in sales logic?",
+    options:[
+      {zh:"强调客户必须买", en:"Forcing the customer to buy"},
+      {zh:"潜移默化地制造兴趣，引导客户形成需求", en:"Subtly creating interest and guiding customers to form demand", correct:true},
+      {zh:"用来代替品牌宣导", en:"To replace brand storytelling"},
+      {zh:"只在清仓活动时使用", en:"Only used during clearance sales"}
+    ],
+    exp_zh:"通过重复与场景展示持续提醒，促成“自我发现”的偏好形成。",
+    exp_en:"Repeated cues and contexts help customers ‘self-discover’ preferences."
+  },
+  { zh:"为什么要逐步引导客户，而不是被动跟随客户？",
+    en:"Why should salespeople guide customers step by step instead of passively following them?",
+    options:[
+      {zh:"因为这样更快成交", en:"Because it closes deals faster"},
+      {zh:"因为可以控制客户体验和节奏", en:"Because it allows control of customer experience and pace", correct:true},
+      {zh:"因为客户喜欢被控制", en:"Because customers like being controlled"},
+      {zh:"因为这样能减少介绍产品数量", en:"Because it reduces product introduction workload"}
+    ],
+    exp_zh:"主动设计路径与节奏，提升体验的连贯性与专业感。",
+    exp_en:"Proactive pacing creates a coherent, professional experience."
+  },
+  { zh:"统一的话术“你好，欢迎，想看点啥”为什么会带来风险？",
+    en:"Why is it risky if all salespeople use the same greeting “Hello, welcome, what do you want to see?”",
+    options:[
+      {zh:"容易让客户产生审美疲劳", en:"It makes customers feel bored"},
+      {zh:"容易让客户进入比价模式，无法突出差异化", en:"It pushes customers into price comparison, losing differentiation", correct:true},
+      {zh:"因为客户喜欢更长的问候", en:"Because customers prefer longer greetings"},
+      {zh:"因为客户会怀疑产品质量", en:"Because customers may doubt product quality"}
+    ],
+    exp_zh:"缺少差异化，客户默认你与他店同质，从而进入比价框架。",
+    exp_en:"Lack of differentiation frames you as generic, triggering price-only comparison."
+  },
+  { zh:"在销售逻辑中，什么时候提出产品选择问题最合适？",
+    en:"When is the best timing to ask the customer about specific product choices?",
+    options:[
+      {zh:"一进店就立刻询问", en:"Immediately when they enter"},
+      {zh:"在品牌宣导之后，引导到爆品区时", en:"After brand introduction, when guiding to the bestseller zone", correct:true},
+      {zh:"在客户准备离店时", en:"When the customer is about to leave"},
+      {zh:"在客户看完所有柜台之后", en:"After the customer has browsed all counters"}
+    ],
+    exp_zh:"先建立框架与信任，再在聚焦场域内缩小选择。",
+    exp_en:"Build frame and trust first; narrow choices within a focused area."
+  },
+  { zh:"为什么销售流程必须包含“逻辑衔接”环节？",
+    en:"Why must the sales process include logical transition steps?",
+    options:[
+      {zh:"因为这样可以增加对话长度", en:"Because it makes conversations longer"},
+      {zh:"因为客户需要被一步步引导才能形成购买意愿", en:"Because customers need step-by-step guidance to develop buying intent", correct:true},
+      {zh:"因为门店规定", en:"Because it is a store rule"},
+      {zh:"因为销售员记不住太多台词", en:"Because salespeople cannot memorize too many lines"}
+    ],
+    exp_zh:"衔接让信息与体验连贯，逐层推进意愿形成与承诺。",
+    exp_en:"Transitions ensure coherence, progressively building intent and commitment."
+  },
+  /* 细节篇 */
+  { zh:"在客户进店后，为什么破冰环节至关重要？",
+    en:"Why is the ice-breaking stage critical after a customer enters the store?",
+    options:[
+      {zh:"因为可以立即推销产品", en:"Because it allows immediate product selling"},
+      {zh:"因为它能打破沉默并建立信任感", en:"Because it breaks the silence and builds trust", correct:true},
+      {zh:"因为客户会主动提需求", en:"Because customers will state their needs directly"},
+      {zh:"因为能减少介绍产品时间", en:"Because it reduces product introduction time"}
+    ],
+    exp_zh:"降低社交阻抗，建立情绪安全，才便于信息交换。",
+    exp_en:"Reduces social friction and builds safety for meaningful exchange."
+  },
+  { zh:"品牌宣导中提到“历史和传承”的作用是什么？",
+    en:"What is the role of highlighting “history and heritage” in brand storytelling?",
+    options:[
+      {zh:"证明价格合理", en:"To justify the pricing"},
+      {zh:"建立专业感和可靠度", en:"To establish professionalism and reliability", correct:true},
+      {zh:"填补对话空白", en:"To fill silence in conversation"},
+      {zh:"替代售后服务", en:"To replace after-sales service"}
+    ],
+    exp_zh:"稳定预期与信任基线，强化可靠性与选择理由。",
+    exp_en:"Sets trust baselines and strengthens reasons to choose you."
+  },
+  { zh:"为什么在介绍爆品区时要使用“TOP 10榜单”的表达方式？",
+    en:"Why should salespeople present the bestseller zone using a “TOP 10 ranking” format?",
+    options:[
+      {zh:"因为客户更容易理解“最畅销”的概念", en:"Because customers easily understand the idea of “bestsellers”", correct:true},
+      {zh:"因为可以减少选择项", en:"Because it limits choices"},
+      {zh:"因为这样显得店面规模大", en:"Because it shows store size"},
+      {zh:"因为这样避免介绍其他柜台", en:"Because it avoids introducing other counters"}
+    ],
+    exp_zh:"社会证明+明确排序，降低选择成本，提升信心。",
+    exp_en:"Social proof and clear ranking reduce choice overload and build confidence."
+  },
+  { zh:"为什么要在客户需求出现之前，主动引导他们？",
+    en:"Why should salespeople guide customers before their needs are clearly stated?",
+    options:[
+      {zh:"因为客户常常不表达真实需求", en:"Because customers often don’t express real needs", correct:true},
+      {zh:"因为这样能减少销售员工作", en:"Because it reduces workload"},
+      {zh:"因为客户喜欢被直接推销", en:"Because customers like direct selling"},
+      {zh:"因为这样避免客户比较价格", en:"Because it avoids price comparison"}
+    ],
+    exp_zh:"用结构化路径帮助客户从模糊到清晰，降低决策焦虑。",
+    exp_en:"Structured guidance helps customers move from fuzzy to clear with less anxiety."
+  },
+  { zh:"当客户说“不了解品牌”时，销售员应该如何回应？",
+    en:"How should a salesperson respond if a customer says they don’t know the brand?",
+    options:[
+      {zh:"停止讲解，转到价格", en:"Stop talking and switch to pricing"},
+      {zh:"主动介绍品牌优势和历史", en:"Actively introduce brand strengths and history", correct:true},
+      {zh:"马上提供折扣", en:"Offer discounts immediately"},
+      {zh:"避免继续对话", en:"Avoid further conversation"}
+    ],
+    exp_zh:"先补齐认知基础，再进行方案与选择的讨论。",
+    exp_en:"First bridge knowledge gaps, then discuss solutions and choices."
+  },
+  { zh:"“种草”的逻辑关键在于什么？",
+    en:"What is the key logic behind “seeding” products?",
+    options:[
+      {zh:"通过反复强调，让客户潜意识形成兴趣", en:"Repeated emphasis to create subconscious interest", correct:true},
+      {zh:"给客户制造购买压力", en:"Creating buying pressure for the customer"},
+      {zh:"强调库存紧张", en:"Stressing limited stock"},
+      {zh:"只在客户离开前使用", en:"Only using it before customers leave"}
+    ],
+    exp_zh:"“看见—记住—喜欢”的层层递进，而非强压成交。",
+    exp_en:"From exposure to memory to liking; not about pressure but priming."
+  },
+  { zh:"在客户浏览时，为什么要引导而不是被动等待？",
+    en:"Why should salespeople guide customers instead of waiting passively during browsing?",
+    options:[
+      {zh:"因为客户会觉得更有安全感", en:"Because customers feel safer"},
+      {zh:"因为可以控制客户的节奏和注意力", en:"Because it helps control customer pace and focus", correct:true},
+      {zh:"因为这样显得更有气势", en:"Because it looks more confident"},
+      {zh:"因为客户喜欢被跟随", en:"Because customers like being followed"}
+    ],
+    exp_zh:"引导是对路径与注意力的设计，避免无效游逛。",
+    exp_en:"Guidance designs the path and attention, avoiding meandering."
+  },
+  { zh:"在销售过程中，为什么要避免一次性展示过多柜台？",
+    en:"Why should salespeople avoid showing too many counters at once?",
+    options:[
+      {zh:"因为客户容易失去焦点和兴趣", en:"Because customers may lose focus and interest", correct:true},
+      {zh:"因为柜台货品价值不一样", en:"Because products in counters have different values"},
+      {zh:"因为这样减少对话时间", en:"Because it shortens the conversation"},
+      {zh:"因为客户不喜欢逛店", en:"Because customers dislike browsing"}
+    ],
+    exp_zh:"减少选择过载，维持清晰路径与节奏控制。",
+    exp_en:"Prevents choice overload and preserves a clear, controlled flow."
+  },
+  { zh:"“逻辑衔接”在销售话术中最大的意义是什么？",
+    en:"What is the greatest significance of “logical transitions” in sales communication?",
+    options:[
+      {zh:"让客户觉得销售员专业且有计划", en:"To make customers feel the salesperson is professional and organized", correct:true},
+      {zh:"增加与客户的闲聊", en:"To increase small talk with the customer"},
+      {zh:"避免客户提出异议", en:"To avoid objections from the customer"},
+      {zh:"让销售员记台词更容易", en:"To make scripts easier to memorize"}
+    ],
+    exp_zh:"让路径可预期、信息有序，增强专业可信度。",
+    exp_en:"Predictable path and ordered info enhance perceived professionalism."
+  },
+  { zh:"为什么门店要定期调整陈列布局？",
+    en:"Why should stores regularly adjust product displays?",
+    options:[
+      {zh:"因为客户对新陈列更敏感，更容易被吸引", en:"Because customers are more sensitive to new displays and more likely to be attracted", correct:true},
+      {zh:"因为可以增加销售员的工作量", en:"Because it increases salesperson’s workload"},
+      {zh:"因为这样方便清点库存", en:"Because it makes inventory counting easier"},
+      {zh:"因为所有店都这么做", en:"Because all stores do it"}
+    ],
+    exp_zh:"新鲜感提升注意力与停留时长，促进转化。",
+    exp_en:"Novelty captures attention and time on display, aiding conversion."
+  }
+];
+
+const BANK_ENTRY  = BANK_ALL.slice(0,5);
+const BANK_NORMAL = BANK_ALL.slice(0,10);
+const BANK_HARD   = BANK_ALL.slice(0,20);
+
+/* ===== 状态 ===== */
+let state = { name:"", level:"entry", chosen:[], answers:{}, pos:0 };
+const LEVEL_TEXT = {entry:"Entry · 5题", normal:"Normal · 10题", hard:"Hard · 20题"};
+
+/* ===== 朗读（手动开始/随时停止） ===== */
+let zhVoice=null, enVoice=null, ttsPlaying=false;
+function pickVoices(){
+  const v = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+  zhVoice = v.find(x=>/zh|cmn|Chinese/i.test(x.lang)) || v.find(x=>/HK|TW/i.test(x.lang)) || null;
+  enVoice = v.find(x=>/^en[-_]/i.test(x.lang)) || null;
+}
+if ('speechSynthesis' in window){
+  speechSynthesis.onvoiceschanged = pickVoices;
+  pickVoices();
+}
+function speakOnce(text, voice, rate=1, pitch=1){
+  return new Promise(res=>{
+    if(!('speechSynthesis' in window)||!text){res();return;}
+    const u = new SpeechSynthesisUtterance(text);
+    if(voice) u.voice = voice;
+    u.rate = rate; u.pitch = pitch;
+    u.onend = res; u.onerror = res;
+    speechSynthesis.speak(u);
+  });
+}
+async function readCurrentQuestion(){
+  if(ttsPlaying) return;
+  ttsPlaying = true;
+  const q = state.chosen[state.pos];
+  try{
+    await speakOnce(q.zh, zhVoice, 1.02, 1.0);
+    if(!ttsPlaying) return;
+    await speakOnce(q.en, enVoice, 1.02, 1.0);
+    if(!ttsPlaying) return;
+    for(let i=0;i<q.options.length;i++){
+      const A = String.fromCharCode(65+i);
+      await speakOnce(A + "，" + q.options[i].zh, zhVoice, 1.02, 1.0);
+      if(!ttsPlaying) return;
+      await speakOnce(A + ". " + q.options[i].en, enVoice, 1.02, 1.0);
+      if(!ttsPlaying) return;
+    }
+  } finally { ttsPlaying = false; }
+}
+function stopReading(){
+  if('speechSynthesis' in window){ try{ speechSynthesis.cancel(); }catch(e){} }
+  ttsPlaying = false;
+}
+
+/* ===== 事件绑定 ===== */
+$('#btnGoStart').addEventListener('click', ()=>{
+  $('#screen-video').style.display='none';
+  $('#screen-start').style.display='block';
+  window.scrollTo({top:0, behavior:'smooth'});
+});
+document.querySelectorAll('.seg button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.seg button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.level = btn.dataset.level;
+  });
+});
+$('#startBtn').addEventListener('click', ()=>{
+  const name = $('#nameInput').value.trim();
+  if(!name){
+    $('#startBtn').classList.add('danger');
+    setTimeout(()=>$('#startBtn').classList.remove('danger'), 600);
+    $('#nameInput').focus(); return;
+  }
+  state.name = name;
+  startQuiz();
+});
+$('#prevBtn').addEventListener('click', ()=>{
+  if(state.pos>0){ stopReading(); state.pos--; renderQuestion(); }
+});
+$('#nextBtn').addEventListener('click', ()=>{
+  if(state.pos < state.chosen.length-1){ stopReading(); state.pos++; renderQuestion(); }
+  else { stopReading(); finishQuiz(); }
+});
+$('#againSame').addEventListener('click', ()=>{ stopReading(); startQuiz(); });
+$('#againStart').addEventListener('click', ()=>{
+  stopReading();
+  $('#screen-quiz').style.display='none';
+  $('#screen-result').style.display='none';
+  $('#screen-start').style.display='block';
+  window.scrollTo({top:0, behavior:'smooth'});
+});
+$('#copyKey').addEventListener('click', ()=>{
+  const text = buildStudyKey(state.chosen);
+  navigator.clipboard?.writeText(text).then(()=>{
+    alert('已复制学习版答案（中英+解析）。Copied study key.');
+  }).catch(()=>{
+    const ta = document.createElement('textarea'); ta.value=text; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+    alert('已复制学习版答案（中英+解析）。Copied study key.');
+  });
+});
+$('#btnRead').addEventListener('click', readCurrentQuestion);
+$('#btnStop').addEventListener('click', stopReading);
+
+/* ===== 流程 ===== */
+const getBank = lvl => lvl==='entry'?BANK_ENTRY : (lvl==='normal'?BANK_NORMAL:BANK_HARD);
+
+function startQuiz(){
+  const base = getBank(state.level);
+  state.chosen = shuffle(base).map(q=>{
+    const opts = shuffle(q.options.map(o=>({...o})));
+    const correctIndex = opts.findIndex(o=>o.correct===true);
+    return { zh:q.zh, en:q.en, options:opts, correctIndex, exp_zh:q.exp_zh, exp_en:q.exp_en };
+  });
+  state.answers = {};
+  state.pos = 0;
+
+  $('#screen-start').style.display='none';
+  $('#screen-result').style.display='none';
+  $('#screen-quiz').style.display='block';
+  $('#pillName').textContent = `姓名：${state.name}`;
+  $('#pillLevel').textContent = `难度：${LEVEL_TEXT[state.level]}`;
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q = state.chosen[state.pos];
+  $('#qTitle').textContent = q.zh;
+  $('#qSub').textContent   = q.en;
+
+  const optBox = $('#optBox');
+  optBox.innerHTML='';
+  q.options.forEach((opt, idx)=>{
+    const id = `q${state.pos}_opt${idx}`;
+    const checked = state.answers[state.pos] === idx;
+    const row = el('label', {class:'opt', for:id}, [
+      el('input', {type:'radio', name:'opt', id, 'data-idx':idx, checked: checked? 'checked': null}),
+      el('div', {class:'opt-label', html:`<strong>${String.fromCharCode(65+idx)}.</strong> ${opt.zh}<br>${opt.en}`})
+    ]);
+    optBox.appendChild(row);
+  });
+  optBox.querySelectorAll('input[type=radio]').forEach(r=>{
+    r.addEventListener('change', ()=>{
+      state.answers[state.pos] = parseInt(r.dataset.idx,10);
+      $('#nextBtn').disabled = false;
+    });
+  });
+
+  $('#nextBtn').disabled = (state.answers[state.pos] == null);
+  $('#nextBtn').textContent = (state.pos === state.chosen.length-1) ? '提交 / Submit' : '下一题 / Next';
+  $('#prevBtn').disabled = (state.pos === 0);
+
+  $('#pillCount').textContent = `题目：${state.pos+1}/${state.chosen.length}`;
+  const pct = Math.round((state.pos)/Math.max(1,(state.chosen.length-1))*100);
+  $('#progressBar').style.width = `${pct}%`;
+}
+
+function finishQuiz(){
+  let correct = 0;
+  const rows = [];
+  state.chosen.forEach((q, i)=>{
+    const chosenIdx = state.answers[i];
+    const ok = (chosenIdx === q.correctIndex);
+    if(ok) correct++;
+    rows.push({
+      no:i+1,
+      zh:q.zh, en:q.en,
+      your: chosenIdx!=null ? `${String.fromCharCode(65+chosenIdx)}. ${q.options[chosenIdx].zh}<br>${q.options[chosenIdx].en}` : '<span class="bad">未作答 / No answer</span>',
+      corr:`${String.fromCharCode(65+q.correctIndex)}. ${q.options[q.correctIndex].zh}<br>${q.options[q.correctIndex].en}`,
+      exp:`${q.exp_zh}<br>${q.exp_en}`,
+      ok
+    });
+  });
+  const total = state.chosen.length;
+  const scorePct = Math.round(correct/total*100);
+  const passLine = Math.ceil(total*0.8);
+  const pass = correct >= passLine;
+
+  $('#screen-quiz').style.display='none';
+  $('#screen-result').style.display='block';
+  $('#rName').textContent = `姓名：${state.name}`;
+  $('#rLevel').textContent = `难度：${LEVEL_TEXT[state.level]}`;
+  $('#rScore').textContent = `分数：${correct}/${total}（${scorePct}%）`;
+  $('#rPass').innerHTML = pass ? `<span class="tag">通过 / PASS</span>` : `<span class="tag" style="border-color:#ffd0d0;background:#fff0f0;color:#bb1e1e">未通过 / FAIL</span>`;
+  $('#passNote').innerHTML = pass ? `🎉 恭喜通过！Congrats, ${state.name}!`
+                                  : `本次未通过。建议复习解析后重测。Not passed—review explanations and try again.`;
+
+  const tb = $('#resultTable tbody');
+  tb.innerHTML = '';
+  rows.forEach(r=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r.no}</td>
+      <td><strong>${r.zh}</strong><br>${r.en}</td>
+      <td>${r.your}</td>
+      <td>${r.corr}</td>
+      <td>${r.exp}</td>
+      <td>${r.ok?'<span class="ok">正确</span>':'<span class="bad">错误</span>'}</td>
+    `;
+    tb.appendChild(tr);
+  });
+
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* 复制学习版答案（中英+解析） */
+function buildStudyKey(chosen){
+  let out = `【学习版答案 Study Key】\n姓名 Name: ${state.name}\n难度 Level: ${LEVEL_TEXT[state.level]}\n\n`;
+  chosen.forEach((q,i)=>{
+    const cor = q.options[q.correctIndex];
+    out += `Q${i+1}. ${q.zh}\n   ${q.en}\n> 正确 Correct: ${cor.zh} | ${cor.en}\n> 解析 Explain: ${q.exp_zh} | ${q.exp_en}\n\n`;
+  });
+  return out;
+}
+</script>
+</body>
+</html>
