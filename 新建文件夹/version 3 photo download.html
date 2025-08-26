@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>图片链接查看＆批量压缩（JPG）— 竖排复制：编号 | 图片</title>
+<style>
+  :root{ --panel:#171923; --text:#e6e8ee; --muted:#9aa3b2; --border:#2b3142; --accent:#4CAF50; --card:#11141b; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"PingFang SC","Microsoft YaHei",sans-serif;background:#0b0e13;color:var(--text)}
+  .wrap{max-width:1200px;margin:0 auto;padding:16px}
+  header{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+  h1{font-size:18px;margin:0}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap}
+  button{border:1px solid var(--border);background:#151b2a;color:var(--text);padding:8px 12px;border-radius:10px;cursor:pointer}
+  button:hover{background:#1b2030}
+  .primary{background:var(--accent);border-color:transparent;color:#061406;font-weight:700}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;margin-top:12px}
+  .pad{padding:12px}
+  textarea{width:100%;min-height:110px;border:1px dashed var(--border);border-radius:10px;background:#0f1524;color:var(--text);padding:10px;resize:vertical}
+  input,select{background:#0f1524;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 8px}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .muted{font-size:12px;color:var(--muted)}
+  .help p{margin:0;font-size:12px;color:#b8c0d0}
+  .card{background:#11141b;border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;min-height:120px;padding:8px}
+  img.thumb{max-width:100%;height:auto;max-height:var(--max-h,300px);object-fit:contain;background:#0a0d14}
+  .images-only{display:grid;gap:12px}
+  .split{display:grid;grid-template-columns:280px 1fr;gap:12px}
+  .codes{background:#11141b;border:1px dashed var(--border);border-radius:12px;padding:12px;display:grid;gap:8px;align-content:start}
+  .code-item{padding:8px 10px;border:1px dashed #2b3142;border-radius:10px;color:#d3d9e8;font-family:ui-monospace,Consolas,monospace;word-break:break-all}
+  .grid-right{display:grid;gap:12px}
+  .hidden-copy{position:fixed;left:-99999px;top:-99999px;opacity:0;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>图片链接查看＆批量压缩（JPG）</h1>
+    <div class="toolbar">
+      <button id="btnRender" class="primary">显示图片</button>
+      <button id="btnCopyAll">复制全部（竖排：编号 | 图片）</button>
+      <button id="btnCopyCodes">复制编号仅</button>
+      <button id="btnZipJPG">下载“已转换JPG”ZIP</button>
+      <button id="btnClear">清空</button>
+      <button id="btnSample">示例</button>
+    </div>
+  </header>
+  <section class="panel pad">
+    <div class="row" style="width:100%">
+      <label class="muted">输入方式：</label>
+      <select id="inputMode">
+        <option value="auto" selected>自动（http开头=链接，否则当款号）</option>
+        <option value="url">只输入链接</option>
+        <option value="code">只输入款号</option>
+      </select>
+      <label>固定前缀：</label>
+      <input id="prefix" style="min-width:480px" value="https://lfp.lukfook.com.cn/LF/SHARE/Binary.ashx?PHOTO=" />
+    </div>
+    <div class="row" style="margin-top:8px">
+      <textarea id="linkInput" placeholder="每行一条；可以是完整链接，也可以只写款号（如 HX32220B）"></textarea>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <label>显示模式：</label>
+      <select id="displayMode">
+        <option value="images" selected>只显示相片</option>
+        <option value="codesImages">编号＋相片并列</option>
+      </select>
+      <label>预览最大高度：</label>
+      <input id="maxH" type="number" min="50" max="800" step="10" value="300" />
+      <span id="hWarn" class="muted"></span>
+    </div>
+    <div class="row">
+      <label>转换为JPG像素：</label>
+      <select id="convertMode">
+        <option value="113">113×113（≈3cm@96dpi）</option>
+        <option value="200" selected>200×200（推荐）</option>
+        <option value="300">300×300</option>
+        <option value="custom">自定义</option>
+      </select>
+      <input id="customPx" type="number" min="80" max="2000" step="10" value="300" style="display:none" />
+      <label>JPG质量：</label>
+      <input id="jpgQ" type="range" min="0.4" max="0.95" step="0.05" value="0.75" />
+      <span id="qVal" class="muted">0.75</span>
+    </div>
+    <div class="row">
+      <label>复制尺寸：</label>
+      <select id="copyUnit">
+        <option value="cm" selected>厘米</option>
+        <option value="px">像素</option>
+      </select>
+      <label id="copyCmBox">宽/高：</label>
+      <input id="copyCm" type="number" min="1" max="10" step="0.1" value="3" />
+      <label id="copyPxBox" style="display:none">宽/高（px）：</label>
+      <input id="copyPx" type="number" min="80" max="2000" step="10" value="200" style="display:none" />
+    </div>
+    <div class="help">
+      <p><b>显示图片</b>：把上面每行转成链接并立即加载。<u>页面上的图片始终使用你输入的原始路径</u>（不追加参数、不替换成 blob）。</p>
+      <p><b>复制全部</b>：输出为<strong>竖排两列</strong>的紧凑表格；Excel 中每对仅占<strong>一行</strong>，图片与编号均<strong>顶对齐</strong>。</p>
+      <p><b>复制编号仅</b>：仅复制编号列表，作为单列表格。</p>
+      <p><b>下载“已转换JPG”ZIP</b>：只打包内存里已转换成功的 JPG；无法转换的条目写进 <code>manifest.txt</code>。</p>
+    </div>
+    <div id="stat" class="muted" style="margin-top:6px">待渲染</div>
+  </section>
+  <section class="panel">
+    <div id="contentArea" class="pad"></div>
+  </section>
+</div>
+<script>
+  let JSZipLib=null;(function(){const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';s.onload=()=>JSZipLib=window.JSZip;document.head.appendChild(s);})();
+</script>
+<script>
+const $=s=>document.querySelector(s);
+const els={inputMode:$('#inputMode'),prefix:$('#prefix'),input:$('#linkInput'),
+  displayMode:$('#displayMode'),content:$('#contentArea'),maxH:$('#maxH'),hWarn:$('#hWarn'),
+  convertMode:$('#convertMode'),customPx:$('#customPx'),jpgQ:$('#jpgQ'),qVal:$('#qVal'),
+  copyUnit:$('#copyUnit'),copyCm:$('#copyCm'),copyPx:$('#copyPx'),
+  btnRender:$('#btnRender'),btnCopyAll:$('#btnCopyAll'),btnCopyCodes:$('#btnCopyCodes'),btnZipJPG:$('#btnZipJPG'),
+  btnClear:$('#btnClear'),btnSample:$('#btnSample'),stat:$('#stat')};
+els.convertMode.onchange=()=>{els.customPx.style.display=(els.convertMode.value==='custom')?'inline-block':'none';};
+els.jpgQ.oninput=()=>els.qVal.textContent=parseFloat(els.jpgQ.value).toFixed(2);
+els.copyUnit.onchange=()=>{const cm=els.copyUnit.value==='cm';els.copyCm.style.display=cm?'inline-block':'none';els.copyCmBox.style.display=cm?'inline-block':'none';els.copyPx.style.display=cm?'none':'inline-block';els.copyPxBox.style.display=cm?'none':'inline-block';};
+function linesOf(t){return (t||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);}
+function toLinksAndLabels(lines){
+  const mode=els.inputMode.value, base=els.prefix.value.trim(), out=[];
+  for(const raw of lines){
+    const s=raw.trim(); if(!s) continue;
+    const isURL=/^https?:\/\//i.test(s);
+    if(mode==='url'||(mode==='auto'&&isURL)){
+      let label=s; try{const u=new URL(s); label=u.searchParams.get('PHOTO')||u.pathname.split('/').pop()||s;}catch{}
+      out.push({link:s,label});
+    }else{
+      out.push({link:base+s,label:s}); // 原样拼接，不 encode、不加参数
+    }
+  }
+  return out;
+}
+let items=[];
+function warnIfTooSmall(){const v=Number(els.maxH.value)||300;els.hWarn.textContent=v<50?'（提示：高度小于 50px，预览可能几乎看不见）':'';}
+async function render(){
+  warnIfTooSmall();
+  const data=toLinksAndLabels(linesOf(els.input.value)); items=[];
+  els.content.innerHTML='';
+  const maxHpx=Math.max(50,Math.min(800,Number(els.maxH.value)||300))+'px';
+  if(els.displayMode.value==='codesImages'){
+    const split=document.createElement('div'); split.className='split';
+    const codes=document.createElement('div'); codes.className='codes';
+    const right=document.createElement('div'); right.className='grid-right';
+    split.appendChild(codes); split.appendChild(right); els.content.appendChild(split);
+    data.forEach(d=>{
+      const div=document.createElement('div'); div.className='code-item'; div.textContent=d.label; codes.appendChild(div);
+      const card=document.createElement('div'); card.className='card';
+      const img=document.createElement('img'); img.className='thumb'; img.style.setProperty('--max-h',maxHpx);
+      loadImageExact(img,d.link,d.label); card.appendChild(img); right.appendChild(card);
+    });
+  }else{
+    const wrap=document.createElement('div'); wrap.className='images-only'; els.content.appendChild(wrap);
+    data.forEach(d=>{
+      const card=document.createElement('div'); card.className='card';
+      const img=document.createElement('img'); img.className='thumb'; img.style.setProperty('--max-h',maxHpx);
+      loadImageExact(img,d.link,d.label); card.appendChild(img); wrap.appendChild(card);
+    });
+  }
+}
+function loadImageExact(img,link,label){
+  img.src=link; img.ondblclick=()=>copySingle(img,link);
+  let triedNR=false;
+  img.onerror=()=>{if(!triedNR){triedNR=true;img.referrerPolicy='no-referrer';img.src=link;return;} tip('有图片加载失败：'+(label||link)); items.push({img,link,blob:null,name:safeNameFromURL(link),label});};
+  img.onload=async()=>{const cv=await tryConvertForZip(link).catch(()=>null); if(cv){items.push({img,link,blob:cv.blob,name:cv.name,label});} else {items.push({img,link,blob:null,name:safeNameFromURL(link),label});}};
+}
+async function tryConvertForZip(link){
+  let size=els.convertMode.value==='custom'?Math.max(80,Math.min(2000,Number(els.customPx.value)||300)):parseInt(els.convertMode.value,10)||200;
+  const q=Math.max(0.4,Math.min(0.95,Number(els.jpgQ.value)||0.75));
+  const i=new Image(); i.crossOrigin='anonymous'; i.referrerPolicy='no-referrer'; i.src=link;
+  await new Promise((res,rej)=>{i.onload=res; i.onerror=()=>rej(new Error('load'));});
+  const c=document.createElement('canvas'); c.width=size; c.height=size;
+  const g=c.getContext('2d'); const s=Math.min(size/i.naturalWidth,size/i.naturalHeight);
+  const w=Math.round(i.naturalWidth*s), h=Math.round(i.naturalHeight*s);
+  g.drawImage(i,(size-w)/2,(size-h)/2,w,h);
+  const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',q)); if(!blob) throw new Error('toBlob');
+  const name=guessBaseName(link)+`_JPG_${size}x${size}_q${Math.round(q*100)}.jpg`; return {blob,name};
+}
+async function copySingle(imgEl,link){
+  try{const w=imgEl.naturalWidth,h=imgEl.naturalHeight; if(!w||!h) throw 0;
+    const c=document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(imgEl,0,0);
+    const b=await new Promise(r=>c.toBlob(r,'image/png',0.92));
+    await navigator.clipboard.write([new ClipboardItem({[b.type]:b})]); tip('已复制图片');}
+  catch{ await navigator.clipboard.writeText(link); tip('复制受限，已改为复制链接');}
+}
+/* ============ 复制全部（固定：竖排两列，一对一，仅 1 行/对） ============ */
+async function copyAll(){
+  const unit=els.copyUnit.value; let W,H;
+  if(unit==='cm'){const cm=Math.max(1,Math.min(10,Number(els.copyCm.value)||3)); const PX_PER_CM=37.795; W=H=Math.round(cm*PX_PER_CM);}
+  else {const px=Math.max(80,Math.min(2000,Number(els.copyPx.value)||200)); W=H=px;}
+  const ptFactor = 0.75; // px to pt conversion for 96 DPI
+  const colWidthPt = Math.round(W * ptFactor);
+  const rows=items.map(it=>{
+    const code=escapeHTML(it.label||''); const src=it.img.src;
+    return `<tr>
+      <td valign="top" style="padding:2px 6px; white-space:nowrap; vertical-align:top; text-align:left;
+                 line-height:1.05; mso-line-height-rule:exactly;
+                 font-family:ui-monospace,Consolas,monospace;">${code}</td>
+      <td valign="top" style="padding:0; vertical-align:top; line-height:0; mso-line-height-rule:exactly; width:${colWidthPt}pt;">
+        <img src="${src}" width="${W}" height="${H}"
+               style="display:block; width:${W}px; height:${H}px; margin:0; object-fit:contain;" />
+      </td>
+    </tr>`;
+  }).join('');
+  const html=`<table border="0" cellspacing="0" cellpadding="0"
+                 style="border-collapse:collapse; border-spacing:0; margin:0; padding:0; table-layout:fixed;">
+                <colgroup>
+                  <col style="mso-width-source:auto;" />
+                  <col style="mso-width-source:userset; width:${colWidthPt}pt;" />
+                </colgroup>
+                <tbody>${rows}</tbody>
+               </table>`;
+  try{
+    await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'})})]);
+    tip('已复制：竖排两列（每对仅 1 行，顶对齐）');
+  }catch{
+    const box=document.createElement('div'); box.className='hidden-copy'; box.innerHTML=html;
+    document.body.appendChild(box);
+    const r=document.createRange(); r.selectNodeContents(box);
+    const sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    document.execCommand('copy'); sel.removeAllRanges(); box.remove();
+    tip('已复制（兼容模式）');
+  }
+}
+async function copyCodes(){
+  const rows=items.map(it=>{
+    const code=escapeHTML(it.label||'');
+    return `<tr>
+      <td style="padding:2px 6px; white-space:nowrap; vertical-align:top; text-align:left;
+                 line-height:1.05; mso-line-height-rule:exactly;
+                 font-family:ui-monospace,Consolas,monospace;">${code}</td>
+    </tr>`;
+  }).join('');
+  const html=`<table border="0" cellspacing="0" cellpadding="0"
+                 style="border-collapse:collapse; border-spacing:0; margin:0; padding:0; table-layout:fixed;">
+                <tbody>${rows}</tbody>
+               </table>`;
+  try{
+    await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([html],{type:'text/html'})})]);
+    tip('已复制：仅编号列表');
+  }catch{
+    const box=document.createElement('div'); box.className='hidden-copy'; box.innerHTML=html;
+    document.body.appendChild(box);
+    const r=document.createRange(); r.selectNodeContents(box);
+    const sel=window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    document.execCommand('copy'); sel.removeAllRanges(); box.remove();
+    tip('已复制（兼容模式）');
+  }
+}
+/* —— ZIP：只打包已成功转换的 JPG —— */
+async function zipConvertedJPGs(){
+  if(!window.JSZip){ tip('ZIP 组件未加载'); return; }
+  const zip=new JSZip(); let added=0; const failed=[];
+  for(const it of items){ if(it.blob){ zip.file(it.name||safeNameFromURL(it.link),it.blob); added++; } else failed.push(it.link); }
+  const note=[`打包时间: ${new Date().toISOString()}`,`加入ZIP（已转换JPG）: ${added} 张`];
+  if(failed.length){ note.push('未转换（可能CORS/权限）：'); failed.forEach((u,i)=>note.push(`${i+1}. ${u}`)); }
+  zip.file('manifest.txt',note.join('\n'),{binary:false});
+  const blob=await zip.generateAsync({type:'blob'}); saveBlob(blob,`converted_jpg_${Date.now()}.zip`);
+}
+/* —— 工具 —— */
+function saveBlob(b,name){const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+function safeNameFromURL(u){try{const url=new URL(u);const base=(url.pathname.split('/').pop()||'image').replace(/[\\/:*?"<>|]/g,'_');const q=url.search.replace(/[\\/:*?"<>|]/g,'_').slice(0,40);return (base||'image')+(q?('_'+q):'');}catch{return 'image_'+Date.now();}}
+function guessBaseName(u){try{const url=new URL(u);const base=url.searchParams.get('PHOTO')||u.pathname.split('/').pop()||'image';return base.replace(/[\\/:*?"<>|]/g,'_');}catch{return 'image';}}
+function escapeHTML(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function tip(msg){els.stat.textContent=msg; setTimeout(()=>{els.stat.textContent='';},1800);}
+/* 事件 */
+$('#btnRender').onclick=render;
+$('#btnCopyAll').onclick=copyAll;
+$('#btnCopyCodes').onclick=copyCodes;
+$('#btnZipJPG').onclick=zipConvertedJPGs;
+$('#btnClear').onclick=()=>{els.input.value=''; els.content.innerHTML=''; items=[]; els.stat.textContent='已清空';};
+$('#btnSample').onclick=()=>{els.input.value=['032536BA','032533BA','032399PA'].join('\n');};
+els.maxH.oninput=warnIfTooSmall;
+window.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter') render();});
+</script>
+</body>
+</html>
